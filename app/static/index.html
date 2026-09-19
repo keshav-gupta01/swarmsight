@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>SwarmSight — Aerial Drone Crowd Safety & Risk Console</title>
+  <title>SwarmSight — Aerial Drone Crowd Safety & Threat Mission Control</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   <style>
@@ -34,7 +34,7 @@
     }
     .container {
       width: 100%;
-      max-width: 1200px;
+      max-width: 1280px;
       display: flex;
       flex-direction: column;
       gap: 20px;
@@ -56,14 +56,14 @@
       gap: 12px;
     }
     .logo-icon {
-      width: 38px;
-      height: 38px;
+      width: 40px;
+      height: 40px;
       border-radius: 10px;
       background: linear-gradient(135deg, #0284c7, #38bdf8);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 20px;
+      font-size: 22px;
       box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
     }
     .brand-title {
@@ -80,6 +80,11 @@
       color: var(--text-muted);
       font-family: var(--font-mono);
       margin-top: 2px;
+    }
+    .header-badges {
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
     .badge {
       display: flex;
@@ -99,10 +104,10 @@
       border: 1px solid rgba(34, 197, 94, 0.4);
       color: var(--safe);
     }
-    .badge-connecting {
-      background: rgba(234, 179, 8, 0.15);
-      border: 1px solid rgba(234, 179, 8, 0.4);
-      color: var(--warn);
+    .badge-aws {
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      color: var(--accent);
     }
     .pulse-dot {
       width: 8px;
@@ -120,10 +125,10 @@
     /* Main Grid Layout */
     .main-grid {
       display: grid;
-      grid-template-columns: 1fr 340px;
+      grid-template-columns: 1fr 400px;
       gap: 20px;
     }
-    @media (max-width: 1024px) {
+    @media (max-width: 1100px) {
       .main-grid { grid-template-columns: 1fr; }
     }
 
@@ -212,7 +217,23 @@
       color: var(--text-muted);
     }
 
-    /* Telemetry Sidebar */
+    /* Severity Legend */
+    .legend-bar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      text-align: center;
+    }
+    .legend-item {
+      padding: 6px;
+      border-radius: 6px;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    /* Telemetry & Alert Sidebar */
     .sidebar {
       display: flex;
       flex-direction: column;
@@ -235,7 +256,7 @@
       margin-bottom: 12px;
       display: flex;
       align-items: center;
-      gap: 8px;
+      justify-content: space-between;
     }
 
     /* Risk Banner */
@@ -328,6 +349,62 @@
       display: flex;
       justify-content: space-between;
     }
+
+    /* Explainability Alert Feed */
+    .alert-feed {
+      max-height: 280px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding-right: 4px;
+    }
+    .alert-feed::-webkit-scrollbar {
+      width: 4px;
+    }
+    .alert-feed::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.15);
+      border-radius: 4px;
+    }
+    .alert-item {
+      background: rgba(0,0,0,0.35);
+      border-radius: 8px;
+      padding: 10px 12px;
+      border-left: 4px solid var(--accent);
+      font-size: 12px;
+      transition: all 0.2s ease;
+    }
+    .alert-item.RED { border-left-color: var(--danger); background: rgba(239, 68, 68, 0.08); }
+    .alert-item.ORANGE { border-left-color: var(--orange); background: rgba(249, 115, 22, 0.08); }
+    
+    .alert-item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+      font-family: var(--font-mono);
+      font-weight: 700;
+    }
+    .alert-reason {
+      color: #e2e8f0;
+      line-height: 1.4;
+      font-size: 11.5px;
+      margin-bottom: 6px;
+    }
+    .alert-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 10px;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+    }
+    .tag-dynamo {
+      color: var(--accent);
+      background: rgba(56, 189, 248, 0.1);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
   </style>
 </head>
 <body>
@@ -337,13 +414,18 @@
       <div class="brand">
         <div class="logo-icon">🛰️</div>
         <div>
-          <h1 class="brand-title">SwarmSight Command</h1>
-          <div class="brand-sub">AERIAL CROWD RISK FUSION • FARNEBACK OPTICAL FLOW</div>
+          <h1 class="brand-title">SwarmSight Mission Control</h1>
+          <div class="brand-sub">AWS DYNAMODB & SNS ALERTING • FARNEBACK RISK FUSION</div>
         </div>
       </div>
-      <div id="statusBadge" class="badge badge-connecting">
-        <div class="pulse-dot"></div>
-        <span id="statusText">CONNECTING...</span>
+      <div class="header-badges">
+        <div class="badge badge-aws">
+          <span>⚡ DynamoDB & SNS Active</span>
+        </div>
+        <div id="statusBadge" class="badge badge-live">
+          <div class="pulse-dot"></div>
+          <span id="statusText">STREAMING</span>
+        </div>
       </div>
     </div>
 
@@ -367,12 +449,28 @@
         </div>
 
         <div class="hud-bar">
-          <span>PIPELINE: <b style="color: var(--accent);">FastAPI • Farneback Flow • Rule Fusion</b></span>
+          <span>PIPELINE: <b style="color: var(--accent);">FastAPI • Farneback Flow • DynamoDB • SNS</b></span>
           <span id="fpsCounter">FPS: --</span>
+        </div>
+
+        <!-- Fruin Severity Legend -->
+        <div class="legend-bar">
+          <div class="legend-item" style="color: var(--safe); border-color: rgba(34,197,94,0.3);">
+            <b>GREEN (LoS A/B)</b><br>Normal Dispersion
+          </div>
+          <div class="legend-item" style="color: var(--warn); border-color: rgba(234,179,8,0.3);">
+            <b>YELLOW (LoS C/D)</b><br>Dense / Active
+          </div>
+          <div class="legend-item" style="color: var(--orange); border-color: rgba(249,115,22,0.4);">
+            <b>ORANGE (LoS E)</b><br>Compression Precursor
+          </div>
+          <div class="legend-item" style="color: var(--danger); border-color: rgba(239,68,68,0.5);">
+            <b>RED (LoS F)</b><br>Crush Hazard
+          </div>
         </div>
       </div>
 
-      <!-- Telemetry Sidebar -->
+      <!-- Telemetry & Alert Sidebar -->
       <div class="sidebar">
         <!-- Live Alert Banner -->
         <div class="card">
@@ -430,6 +528,19 @@
             <div class="inspector-item"><span>Severity:</span><b id="inspLevel" style="color: var(--safe);">--</b></div>
           </div>
         </div>
+
+        <!-- Explainability Alert Feed -->
+        <div class="card">
+          <div class="card-title">
+            <span>⚡ Live Alert Feed</span>
+            <span style="font-size: 11px; font-weight: normal; color: var(--accent);">Auto-Sync</span>
+          </div>
+          <div class="alert-feed" id="alertFeed">
+            <div style="font-size: 11px; color: var(--text-muted); text-align: center; padding: 12px;">
+              No alerts active. All zones normal.
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -459,12 +570,14 @@
     const inspVariance = document.getElementById('inspVariance');
     const inspCoherence = document.getElementById('inspCoherence');
     const inspLevel = document.getElementById('inspLevel');
+    const alertFeed = document.getElementById('alertFeed');
 
     let showHeatmap = true;
     let showGrid = true;
     let hoveredRow = 2;
     let hoveredCol = 4;
     let currentTelemetry = null;
+    let knownAlerts = new Set();
 
     let frameCount = 0;
     let lastTime = performance.now();
@@ -472,6 +585,25 @@
     const wsProto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const wsUrl = `${wsProto}//${window.location.host}/ws/stream`;
     let ws;
+
+    // Web Audio synthesizer for alert beep
+    const audioCtx = (window.AudioContext || window.webkitAudioContext) ? new (window.AudioContext || window.webkitAudioContext)() : null;
+    function playAlertPing(freq = 880) {
+      if (!audioCtx) return;
+      try {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.25);
+      } catch(e) {}
+    }
 
     function connect() {
       ws = new WebSocket(wsUrl);
@@ -483,13 +615,20 @@
         const data = JSON.parse(event.data);
         const img = new Image();
         img.onload = () => {
-          // Draw base video frame
           ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
           
           if (data.telemetry) {
             currentTelemetry = data.telemetry;
             renderOverlay(data.telemetry);
             updateTelemetryUI(data.telemetry);
+          }
+
+          if (data.new_alerts && data.new_alerts.length > 0) {
+            playAlertPing(data.new_alerts[0].risk_level === 'RED' ? 960 : 700);
+          }
+
+          if (data.recent_alerts) {
+            updateAlertFeed(data.recent_alerts);
           }
 
           frameCount++;
@@ -521,9 +660,8 @@
         const x = z.col * cellW;
         const y = z.row * cellH;
 
-        // Draw Heatmap
         if (showHeatmap) {
-          let fillStyle = 'rgba(34, 197, 94, 0.08)'; // green
+          let fillStyle = 'rgba(34, 197, 94, 0.08)';
           if (z.level === 'RED') {
             fillStyle = 'rgba(239, 68, 68, 0.55)';
           } else if (z.level === 'ORANGE') {
@@ -535,7 +673,6 @@
           ctx.fillRect(x, y, cellW, cellH);
         }
 
-        // Draw Grid Lines
         if (showGrid) {
           ctx.strokeStyle = (z.row === hoveredRow && z.col === hoveredCol)
             ? 'rgba(56, 189, 248, 0.9)'
@@ -547,28 +684,23 @@
     }
 
     function updateTelemetryUI(t) {
-      // Risk Banner
       riskBanner.className = `risk-banner ${t.overall_level}`;
       riskLevelText.innerText = t.overall_level;
       riskStatusDesc.innerText = t.overall_status;
 
-      // Density Gauge
       const densityPct = Math.round(t.max_density * 100);
       valDensity.innerText = `${densityPct}%`;
       barDensity.style.width = `${densityPct}%`;
       barDensity.style.backgroundColor = densityPct > 70 ? 'var(--danger)' : (densityPct > 45 ? 'var(--warn)' : 'var(--safe)');
 
-      // Micro-Motion Variance
       const varPct = Math.min(100, Math.round(t.min_variance * 80));
       valVariance.innerText = t.min_variance < 0.25 ? '⚠️ COLLAPSE (Precursor)' : 'Normal Jitter';
       barVariance.style.width = `${varPct}%`;
       barVariance.style.backgroundColor = t.min_variance < 0.25 ? 'var(--danger)' : 'var(--safe)';
 
-      // Peak Score
       valScore.innerText = t.max_risk_score.toFixed(2);
       barScore.style.width = `${t.max_risk_score * 100}%`;
 
-      // Update Inspector for currently hovered zone
       if (t.zones) {
         const active = t.zones.find(z => z.row === hoveredRow && z.col === hoveredCol);
         if (active) {
@@ -583,7 +715,30 @@
       }
     }
 
-    // Interactive Hover on Canvas
+    function updateAlertFeed(alerts) {
+      if (!alerts || alerts.length === 0) {
+        alertFeed.innerHTML = '<div style="font-size: 11px; color: var(--text-muted); text-align: center; padding: 12px;">No alerts active. All zones normal.</div>';
+        return;
+      }
+
+      alertFeed.innerHTML = alerts.map(a => {
+        const timeStr = new Date(a.timestamp * 1000).toLocaleTimeString();
+        return `
+          <div class="alert-item ${a.risk_level}">
+            <div class="alert-item-header">
+              <span style="color: var(--${a.risk_level === 'RED' ? 'danger' : 'orange'});">${a.risk_level} ALERT • ${a.zone_id}</span>
+              <span style="font-size: 10px; color: var(--text-muted);">${timeStr}</span>
+            </div>
+            <div class="alert-reason">${a.reason}</div>
+            <div class="alert-meta">
+              <span>Density: ${Math.round(a.density * 100)}% | Var: ${a.variance}</span>
+              <span class="tag-dynamo">⚡ DynamoDB + SNS</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
     canvas.addEventListener('mousemove', (e) => {
       const rect = canvas.getBoundingClientRect();
       const scaleX = canvas.width / rect.width;

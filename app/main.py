@@ -4,11 +4,12 @@ import os
 import cv2
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 
 from app.analytics import CrowdAnalyticsEngine
+from app.alerting import AlertManager
 
-app = FastAPI(title="SwarmSight Live Analytics Server")
+app = FastAPI(title="SwarmSight Live Analytics & Alerting Server")
 
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
 CLIPS_DIR = "/opt/swarmsight/data/clips"
@@ -22,6 +23,7 @@ CLIPS = {
 }
 
 current_clip = "safe"
+alert_manager = AlertManager(cooldown_seconds=12.0)
 
 @app.get("/")
 def get_index():
@@ -34,7 +36,12 @@ def select_feed(feed_id: str):
     if feed_id in CLIPS:
         current_clip = feed_id
         return {"status": "ok", "feed": feed_id}
-    return {"status": "error", "message": "Unknown feed"}, 400
+    return JSONResponse(status_code=400, content={"status": "error", "message": "Unknown feed"})
+
+@app.get("/api/alerts")
+def get_alerts():
+    """Returns recent alerts for the dashboard feed."""
+    return {"alerts": alert_manager.get_recent_alerts()}
 
 @app.websocket("/ws/stream")
 async def websocket_endpoint(websocket: WebSocket):
@@ -59,18 +66,23 @@ async def websocket_endpoint(websocket: WebSocket):
                 cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
                 continue
 
-            # Run Crowd Analytics (Density + Farneback Optical Flow + Risk Fusion)
+            # Run Crowd Analytics (Density + Farneback Flow + Risk Fusion)
             telemetry = engine.process_frame(frame)
+
+            # Check Alert Conditions (DynamoDB + SNS on Orange/Red)
+            new_alerts = alert_manager.check_and_alert(telemetry, current_clip)
 
             # Encode frame to JPEG
             _, buffer = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 70])
             b64_frame = base64.b64encode(buffer).decode('utf-8')
 
-            # Send frame + analytics telemetry
+            # Send frame + analytics telemetry + alert payload
             await websocket.send_json({
                 "feed": current_clip,
                 "frame": b64_frame,
-                "telemetry": telemetry
+                "telemetry": telemetry,
+                "new_alerts": new_alerts,
+                "recent_alerts": alert_manager.get_recent_alerts()[:10]
             })
 
             # Stream at ~7 fps
