@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SwarmSight — Aerial Drone Crowd Safety & Risk Console</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: rgba(18, 24, 38, 0.85);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
+      --accent: #38bdf8;
+      --safe: #22c55e;
+      --warn: #eab308;
+      --orange: #f97316;
+      --danger: #ef4444;
+      --font-main: 'Outfit', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 20px;
+      background: radial-gradient(circle at top, #111827 0%, var(--bg) 100%);
+      color: var(--text);
+      font-family: var(--font-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    /* Top Bar */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 16px 24px;
+      backdrop-filter: blur(12px);
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .logo-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #0284c7, #38bdf8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
+    }
+    .brand-title {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin: 0;
+      background: linear-gradient(to right, #ffffff, #94a3b8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .brand-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      margin-top: 2px;
+    }
+    .badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+      transition: all 0.3s ease;
+    }
+    .badge-live {
+      background: rgba(34, 197, 94, 0.15);
+      border: 1px solid rgba(34, 197, 94, 0.4);
+      color: var(--safe);
+    }
+    .badge-connecting {
+      background: rgba(234, 179, 8, 0.15);
+      border: 1px solid rgba(234, 179, 8, 0.4);
+      color: var(--warn);
+    }
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 10px currentColor;
+      animation: pulse 1.8s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    /* Main Grid Layout */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 20px;
+    }
+    @media (max-width: 1024px) {
+      .main-grid { grid-template-columns: 1fr; }
+    }
+
+    /* Video Player Card */
+    .video-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 20px;
+      backdrop-filter: blur(12px);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    }
+    .feed-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .btn-group {
+      display: flex;
+      gap: 8px;
+      background: rgba(0,0,0,0.3);
+      padding: 4px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+    button {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: var(--font-main);
+      transition: all 0.2s ease;
+    }
+    button:hover { color: #fff; background: rgba(255,255,255,0.06); }
+    button.active {
+      background: #0284c7;
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.4);
+    }
+    .toggle-btn {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: var(--text);
+    }
+    .toggle-btn.active {
+      background: rgba(56, 189, 248, 0.2);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .canvas-container {
+      position: relative;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: #000;
+      box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+      cursor: crosshair;
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    /* HUD Bar under video */
+    .hud-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 14px;
+      background: rgba(0,0,0,0.4);
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.04);
+      font-size: 13px;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+    }
+
+    /* Telemetry Sidebar */
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 18px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    }
+    .card-title {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Risk Banner */
+    .risk-banner {
+      padding: 16px;
+      border-radius: 12px;
+      text-align: center;
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .risk-banner.GREEN {
+      background: rgba(34, 197, 94, 0.12);
+      border: 1px solid var(--safe);
+      color: var(--safe);
+    }
+    .risk-banner.YELLOW {
+      background: rgba(234, 179, 8, 0.12);
+      border: 1px solid var(--warn);
+      color: var(--warn);
+    }
+    .risk-banner.ORANGE {
+      background: rgba(249, 115, 22, 0.18);
+      border: 2px solid var(--orange);
+      color: var(--orange);
+      box-shadow: 0 0 25px rgba(249, 115, 22, 0.3);
+      animation: alertPulse 1.2s infinite;
+    }
+    .risk-banner.RED {
+      background: rgba(239, 68, 68, 0.25);
+      border: 2px solid var(--danger);
+      color: var(--danger);
+      box-shadow: 0 0 35px rgba(239, 68, 68, 0.5);
+      animation: alertPulse 0.8s infinite;
+    }
+    @keyframes alertPulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.02); opacity: 0.9; }
+    }
+    .risk-level-text {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: 1px;
+    }
+    .risk-status-desc {
+      font-size: 12px;
+      font-family: var(--font-mono);
+      opacity: 0.9;
+    }
+
+    /* Metric Gauges */
+    .metric-row {
+      margin-bottom: 12px;
+    }
+    .metric-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      margin-bottom: 6px;
+      font-family: var(--font-mono);
+    }
+    .progress-bar-bg {
+      width: 100%;
+      height: 8px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      transition: width 0.3s ease, background-color 0.3s ease;
+      border-radius: 4px;
+    }
+
+    /* Zone Inspector */
+    .inspector-box {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      background: rgba(0,0,0,0.35);
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.05);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .inspector-item {
+      display: flex;
+      justify-content: space-between;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div class="brand">
+        <div class="logo-icon">🛰️</div>
+        <div>
+          <h1 class="brand-title">SwarmSight Command</h1>
+          <div class="brand-sub">AERIAL CROWD RISK FUSION • FARNEBACK OPTICAL FLOW</div>
+        </div>
+      </div>
+      <div id="statusBadge" class="badge badge-connecting">
+        <div class="pulse-dot"></div>
+        <span id="statusText">CONNECTING...</span>
+      </div>
+    </div>
+
+    <!-- Main Grid -->
+    <div class="main-grid">
+      <!-- Video Section -->
+      <div class="video-card">
+        <div class="feed-controls">
+          <div class="btn-group">
+            <button id="btnSafe" class="active" onclick="switchFeed('safe')">Drone Alpha (Concert Dispersion)</button>
+            <button id="btnCompression" onclick="switchFeed('compression')">Drone Bravo (Bottleneck Crush)</button>
+          </div>
+          <div class="btn-group">
+            <button id="btnHeatmap" class="toggle-btn active" onclick="toggleOverlay('heatmap')">Risk Heatmap</button>
+            <button id="btnGridLines" class="toggle-btn active" onclick="toggleOverlay('grid')">Zone Grid</button>
+          </div>
+        </div>
+
+        <div class="canvas-container" id="canvasContainer">
+          <canvas id="videoCanvas" width="640" height="480"></canvas>
+        </div>
+
+        <div class="hud-bar">
+          <span>PIPELINE: <b style="color: var(--accent);">FastAPI • Farneback Flow • Rule Fusion</b></span>
+          <span id="fpsCounter">FPS: --</span>
+        </div>
+      </div>
+
+      <!-- Telemetry Sidebar -->
+      <div class="sidebar">
+        <!-- Live Alert Banner -->
+        <div class="card">
+          <div class="card-title">🚨 System Threat Level</div>
+          <div id="riskBanner" class="risk-banner GREEN">
+            <div id="riskLevelText" class="risk-level-text">GREEN</div>
+            <div id="riskStatusDesc" class="risk-status-desc">NORMAL: SAFE DENSITY & DISPERSION</div>
+          </div>
+        </div>
+
+        <!-- Metric Gauges -->
+        <div class="card">
+          <div class="card-title">📊 Real-Time Fusion Metrics</div>
+          
+          <div class="metric-row">
+            <div class="metric-header">
+              <span>Max Zone Density</span>
+              <span id="valDensity">0%</span>
+            </div>
+            <div class="progress-bar-bg">
+              <div id="barDensity" class="progress-fill" style="background: var(--safe);"></div>
+            </div>
+          </div>
+
+          <div class="metric-row">
+            <div class="metric-header">
+              <span>Micro-Motion Stability</span>
+              <span id="valVariance">Normal</span>
+            </div>
+            <div class="progress-bar-bg">
+              <div id="barVariance" class="progress-fill" style="background: var(--safe);"></div>
+            </div>
+          </div>
+
+          <div class="metric-row">
+            <div class="metric-header">
+              <span>Peak Risk Score</span>
+              <span id="valScore">0.20</span>
+            </div>
+            <div class="progress-bar-bg">
+              <div id="barScore" class="progress-fill" style="background: var(--accent);"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Zone Inspector -->
+        <div class="card">
+          <div class="card-title">🎯 Zone Inspector (Hover Grid)</div>
+          <div class="inspector-box" id="inspectorBox">
+            <div class="inspector-item"><span>Selected Zone:</span><b id="inspZone">zone_2_3 (Center)</b></div>
+            <div class="inspector-item"><span>Density:</span><span id="inspDensity">--</span></div>
+            <div class="inspector-item"><span>Flow Velocity:</span><span id="inspVelocity">--</span></div>
+            <div class="inspector-item"><span>Micro-Motion Var:</span><span id="inspVariance">--</span></div>
+            <div class="inspector-item"><span>Coherence:</span><span id="inspCoherence">--</span></div>
+            <div class="inspector-item"><span>Severity:</span><b id="inspLevel" style="color: var(--safe);">--</b></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('videoCanvas');
+    const ctx = canvas.getContext('2d');
+    const statusBadge = document.getElementById('statusBadge');
+    const statusText = document.getElementById('statusText');
+    const fpsCounter = document.getElementById('fpsCounter');
+
+    // Telemetry DOM elements
+    const riskBanner = document.getElementById('riskBanner');
+    const riskLevelText = document.getElementById('riskLevelText');
+    const riskStatusDesc = document.getElementById('riskStatusDesc');
+    const valDensity = document.getElementById('valDensity');
+    const barDensity = document.getElementById('barDensity');
+    const valVariance = document.getElementById('valVariance');
+    const barVariance = document.getElementById('barVariance');
+    const valScore = document.getElementById('valScore');
+    const barScore = document.getElementById('barScore');
+
+    // Inspector DOM elements
+    const inspZone = document.getElementById('inspZone');
+    const inspDensity = document.getElementById('inspDensity');
+    const inspVelocity = document.getElementById('inspVelocity');
+    const inspVariance = document.getElementById('inspVariance');
+    const inspCoherence = document.getElementById('inspCoherence');
+    const inspLevel = document.getElementById('inspLevel');
+
+    let showHeatmap = true;
+    let showGrid = true;
+    let hoveredRow = 2;
+    let hoveredCol = 4;
+    let currentTelemetry = null;
+
+    let frameCount = 0;
+    let lastTime = performance.now();
+
+    const wsProto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${wsProto}//${window.location.host}/ws/stream`;
+    let ws;
+
+    function connect() {
+      ws = new WebSocket(wsUrl);
+      ws.onopen = () => {
+        statusBadge.className = 'badge badge-live';
+        statusText.innerText = 'STREAMING TELEMETRY';
+      };
+      ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        const img = new Image();
+        img.onload = () => {
+          // Draw base video frame
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          
+          if (data.telemetry) {
+            currentTelemetry = data.telemetry;
+            renderOverlay(data.telemetry);
+            updateTelemetryUI(data.telemetry);
+          }
+
+          frameCount++;
+          const now = performance.now();
+          if (now - lastTime >= 1000) {
+            fpsCounter.innerText = `FPS: ${frameCount}`;
+            frameCount = 0;
+            lastTime = now;
+          }
+        };
+        img.src = 'data:image/jpeg;base64,' + data.frame;
+      };
+      ws.onclose = () => {
+        statusBadge.className = 'badge badge-connecting';
+        statusText.innerText = 'RECONNECTING...';
+        setTimeout(connect, 2000);
+      };
+    }
+
+    function renderOverlay(t) {
+      const rows = 6;
+      const cols = 8;
+      const cellW = canvas.width / cols;
+      const cellH = canvas.height / rows;
+
+      if (!t.zones) return;
+
+      t.zones.forEach(z => {
+        const x = z.col * cellW;
+        const y = z.row * cellH;
+
+        // Draw Heatmap
+        if (showHeatmap) {
+          let fillStyle = 'rgba(34, 197, 94, 0.08)'; // green
+          if (z.level === 'RED') {
+            fillStyle = 'rgba(239, 68, 68, 0.55)';
+          } else if (z.level === 'ORANGE') {
+            fillStyle = 'rgba(249, 115, 22, 0.45)';
+          } else if (z.level === 'YELLOW') {
+            fillStyle = 'rgba(234, 179, 8, 0.30)';
+          }
+          ctx.fillStyle = fillStyle;
+          ctx.fillRect(x, y, cellW, cellH);
+        }
+
+        // Draw Grid Lines
+        if (showGrid) {
+          ctx.strokeStyle = (z.row === hoveredRow && z.col === hoveredCol)
+            ? 'rgba(56, 189, 248, 0.9)'
+            : 'rgba(255, 255, 255, 0.12)';
+          ctx.lineWidth = (z.row === hoveredRow && z.col === hoveredCol) ? 2 : 1;
+          ctx.strokeRect(x, y, cellW, cellH);
+        }
+      });
+    }
+
+    function updateTelemetryUI(t) {
+      // Risk Banner
+      riskBanner.className = `risk-banner ${t.overall_level}`;
+      riskLevelText.innerText = t.overall_level;
+      riskStatusDesc.innerText = t.overall_status;
+
+      // Density Gauge
+      const densityPct = Math.round(t.max_density * 100);
+      valDensity.innerText = `${densityPct}%`;
+      barDensity.style.width = `${densityPct}%`;
+      barDensity.style.backgroundColor = densityPct > 70 ? 'var(--danger)' : (densityPct > 45 ? 'var(--warn)' : 'var(--safe)');
+
+      // Micro-Motion Variance
+      const varPct = Math.min(100, Math.round(t.min_variance * 80));
+      valVariance.innerText = t.min_variance < 0.25 ? '⚠️ COLLAPSE (Precursor)' : 'Normal Jitter';
+      barVariance.style.width = `${varPct}%`;
+      barVariance.style.backgroundColor = t.min_variance < 0.25 ? 'var(--danger)' : 'var(--safe)';
+
+      // Peak Score
+      valScore.innerText = t.max_risk_score.toFixed(2);
+      barScore.style.width = `${t.max_risk_score * 100}%`;
+
+      // Update Inspector for currently hovered zone
+      if (t.zones) {
+        const active = t.zones.find(z => z.row === hoveredRow && z.col === hoveredCol);
+        if (active) {
+          inspZone.innerText = `zone_${active.row}_${active.col}`;
+          inspDensity.innerText = `${Math.round(active.density * 100)}%`;
+          inspVelocity.innerText = `${active.mean_velocity} px/f`;
+          inspVariance.innerText = `${active.variance}`;
+          inspCoherence.innerText = `${active.coherence}`;
+          inspLevel.innerText = active.level;
+          inspLevel.style.color = `var(--${active.level === 'GREEN' ? 'safe' : (active.level === 'YELLOW' ? 'warn' : (active.level === 'ORANGE' ? 'orange' : 'danger'))})`;
+        }
+      }
+    }
+
+    // Interactive Hover on Canvas
+    canvas.addEventListener('mousemove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      const mouseX = (e.clientX - rect.left) * scaleX;
+      const mouseY = (e.clientY - rect.top) * scaleY;
+
+      const c = Math.floor(mouseX / (canvas.width / 8));
+      const r = Math.floor(mouseY / (canvas.height / 6));
+
+      if (r >= 0 && r < 6 && c >= 0 && c < 8) {
+        hoveredRow = r;
+        hoveredCol = c;
+      }
+    });
+
+    function switchFeed(feed) {
+      fetch(`/api/select_feed/${feed}`)
+        .then(r => r.json())
+        .then(() => {
+          document.getElementById('btnSafe').classList.toggle('active', feed === 'safe');
+          document.getElementById('btnCompression').classList.toggle('active', feed === 'compression');
+        });
+    }
+
+    function toggleOverlay(type) {
+      if (type === 'heatmap') {
+        showHeatmap = !showHeatmap;
+        document.getElementById('btnHeatmap').classList.toggle('active', showHeatmap);
+      } else if (type === 'grid') {
+        showGrid = !showGrid;
+        document.getElementById('btnGridLines').classList.toggle('active', showGrid);
+      }
+    }
+
+    connect();
+  </script>
+</body>
+</html>

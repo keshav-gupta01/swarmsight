@@ -1,0 +1,37 @@
+# Dependencies
+node_modules/
+*/node_modules/
+
+# AWS CDK
+cdk.out/
+*/cdk.out/
+.cdk.staging/
+*/.cdk.staging/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+
+# Temporary bundles & local test media
+*.tar.gz
+*.zip
+*.mp4
+*.avi
+
+# OS and Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Secrets and Keys
+.env
+.env.*
+*.pem
