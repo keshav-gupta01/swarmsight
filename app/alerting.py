@@ -25,7 +25,7 @@ class AlertManager:
     2. Incident Aggregation: Consolidates multiple zone alarms into a single summary email.
     3. State Escalation: Only emails on transition to elevated danger, not repetitive loops.
     """
-    def __init__(self, sns_cooldown_seconds: float = 120.0, db_cooldown_seconds: float = 30.0, **kwargs):
+    def __init__(self, sns_cooldown_seconds: float = 3600.0, db_cooldown_seconds: float = 60.0, **kwargs):
         # Support legacy cooldown_seconds if passed
         if "cooldown_seconds" in kwargs:
             sns_cooldown_seconds = kwargs["cooldown_seconds"]

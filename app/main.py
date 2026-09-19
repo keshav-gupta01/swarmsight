@@ -23,7 +23,7 @@ CLIPS = {
 }
 
 current_clip = "safe"
-alert_manager = AlertManager(sns_cooldown_seconds=120.0, db_cooldown_seconds=30.0)
+alert_manager = AlertManager(sns_cooldown_seconds=3600.0, db_cooldown_seconds=60.0)
 
 @app.get("/")
 def get_index():
