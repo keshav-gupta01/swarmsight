@@ -23,8 +23,8 @@ All resources were provisioned using AWS CDK (TypeScript) under strict least-pri
 
 | Resource Type | AWS Identifier | Details & Configuration |
 |:---|:---|:---|
-| **EC2 Instance** | `i-0beef7562efedbba0` | `t3.large` (2 vCPU, 8 GB RAM, 30 GB gp3 encrypted EBS). Runs Ubuntu 22.04 LTS, FastAPI, Uvicorn, and OpenCV. |
-| **Public IPv4** | `13.206.97.76` | Live web console accessible at `http://13.206.97.76:8000`. |
+| **EC2 Instance** | `i-0beef7562efedbba0` | `t3.large` (2 vCPU, 8 GB RAM, 30 GB gp3 encrypted EBS). Runs Ubuntu 22.04 LTS, managed via persistent `systemd` service (`swarmsight.service`). |
+| **Public IPv4** | `13.235.100.182` | Live web console accessible 24/7 at `http://13.235.100.182:8000`. |
 | **Security Group** | `sg-0372d0bbfb5aa0932` (`swarmsight-sg`) | **Port 22 (SSH/EIC)**: Locked to operator IP (`47.15.119.56/32`) and AWS EC2 Instance Connect CIDR (`13.233.177.0/29`).<br>**Port 8000 (Web Console)**: Open to `0.0.0.0/0` for live judging and demo access across cellular CGNAT. |
 | **IAM Instance Role** | `swarmsight-ec2-role` | Principal: `ec2.amazonaws.com`. Instance profile attached to EC2—**zero hardcoded keys**. Scoped strictly to project S3, DynamoDB, and SNS. |
 | **S3 Storage Bucket** | `swarmsight-demo-kesha` | Private bucket with AWS SSE-S3 encryption and SSL enforcement. Stores `clips/` (app deployment tarballs and demo clips) and `snapshots/`. |
@@ -143,17 +143,20 @@ Next, we will upgrade this foundation into the comprehensive enterprise architec
 
 ---
 
-## 6. How to Re-Run or Deploy the MVP
+## 6. How to Manage the 24/7 Platform Service on EC2
 
-If starting on a fresh EC2 instance or restarting services:
+The platform is managed by a Linux `systemd` daemon (`swarmsight.service`) that automatically starts on system boot and restarts if an unexpected failure occurs:
 
 ```bash
-# 1. SSH / Connect to EC2 instance
-# 2. Pull code package from S3 and run
-/opt/swarmsight/venv/bin/python3 -c "import boto3; boto3.client('s3','ap-south-1').download_file('swarmsight-demo-kesha','clips/app.tar.gz','/tmp/app.tar.gz')" && \
-tar -xzf /tmp/app.tar.gz -C /opt/swarmsight/app && \
-sudo screen -dmS swarmsight /opt/swarmsight/venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000 --app-dir /opt/swarmsight
+# Check service status
+sudo systemctl status swarmsight.service
 
-# 3. View live mission console
-# Open in browser: http://13.206.97.76:8000
+# Restart service after code updates
+sudo systemctl restart swarmsight.service
+
+# View live service logs
+sudo journalctl -u swarmsight.service -f
+
+# 24/7 Live Mission Console URL
+# Open in browser: http://13.235.100.182:8000
 ```
