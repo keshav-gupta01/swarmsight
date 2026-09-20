@@ -435,10 +435,11 @@
       <div class="video-card">
         <div class="feed-controls">
           <div class="btn-group">
-            <button id="btnSafe" class="active" onclick="switchFeed('safe')" title="Real Drone Crowd Footage - Safe Dispersion">Drone Alpha (Real - Safe)</button>
-            <button id="btnCompression" onclick="switchFeed('compression')" title="Real Drone Crowd Footage - High Coherence Surge">Drone Bravo (Real - Surge)</button>
-            <button id="btnSimSafe" onclick="switchFeed('sim_safe')" title="Revert to Synthetic Simulation - Packed Concert">Sim Alpha (Concert)</button>
-            <button id="btnSimCompression" onclick="switchFeed('sim_compression')" title="Revert to Synthetic Simulation - Bottleneck Crush">Sim Bravo (Crush)</button>
+            <button id="btnSafe" class="active" onclick="switchFeed('safe')" title="Real Drone Crowd Footage - Safe Dispersion">Drone Alpha (Safe)</button>
+            <button id="btnCompression" onclick="switchFeed('compression')" title="Real Drone Crowd Footage - High Coherence Surge">Drone Bravo (Surge)</button>
+            <button id="btnLiveCam" onclick="toggleLiveCamera()" style="border: 1px solid rgba(56, 189, 248, 0.4); background: rgba(56, 189, 248, 0.12); color: #38bdf8;" title="Stream from Laptop Webcam or Phone Camera">🎥 Live Camera</button>
+            <button id="btnSimSafe" onclick="switchFeed('sim_safe')" title="Revert to Synthetic Simulation - Packed Concert">Sim Alpha</button>
+            <button id="btnSimCompression" onclick="switchFeed('sim_compression')" title="Revert to Synthetic Simulation - Bottleneck Crush">Sim Bravo</button>
           </div>
           <div class="btn-group">
             <button id="btnHeatmap" class="toggle-btn active" onclick="toggleOverlay('heatmap')">Risk Heatmap</button>
@@ -451,7 +452,7 @@
         </div>
 
         <div class="hud-bar">
-          <span>PIPELINE: <b style="color: var(--accent);">FastAPI • Farneback Flow • DynamoDB • SNS</b></span>
+          <span>SOURCE: <b id="sourceIndicator" style="color: var(--safe);">Drone Alpha (Safe)</b> • PIPELINE: <b id="modelIndicator" style="color: #94a3b8;">Farneback Flow + High-Frequency Density</b></span>
           <span id="fpsCounter">FPS: --</span>
         </div>
 
@@ -648,6 +649,26 @@
             currentTelemetry = data.telemetry;
             renderOverlay(data.telemetry);
             updateTelemetryUI(data.telemetry);
+            if (data.telemetry.density_model) {
+              const mEl = document.getElementById('modelIndicator');
+              if (mEl) mEl.innerText = data.telemetry.density_model;
+            }
+          }
+
+          if (data.feed) {
+            const srcEl = document.getElementById('sourceIndicator');
+            if (srcEl) {
+              if (data.feed.includes('live')) {
+                srcEl.innerText = '🔴 LIVE CAMERA ACTIVE';
+                srcEl.style.color = 'var(--danger)';
+              } else if (data.feed === 'compression' || data.feed === 'real_unsafe') {
+                srcEl.innerText = 'Drone Bravo (Surge)';
+                srcEl.style.color = 'var(--orange)';
+              } else {
+                srcEl.innerText = 'Drone Alpha (Safe)';
+                srcEl.style.color = 'var(--safe)';
+              }
+            }
           }
 
           if (data.new_alerts && data.new_alerts.length > 0) {
@@ -824,7 +845,90 @@
       }
     });
 
+    let localStream = null;
+    let cameraInterval = null;
+    let offscreenCanvas = document.createElement('canvas');
+    let offscreenCtx = offscreenCanvas.getContext('2d');
+    offscreenCanvas.width = 640;
+    offscreenCanvas.height = 480;
+    let isLiveCamera = false;
+
+    async function toggleLiveCamera() {
+      if (isLiveCamera) {
+        stopLiveCamera();
+        switchFeed('safe');
+        return;
+      }
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'environment' }
+        });
+        localStream = stream;
+        const videoTrack = document.createElement('video');
+        videoTrack.srcObject = stream;
+        videoTrack.setAttribute('playsinline', 'true');
+        videoTrack.muted = true;
+        await videoTrack.play();
+        isLiveCamera = true;
+
+        const btn = document.getElementById('btnLiveCam');
+        if (btn) {
+          btn.classList.add('active');
+          btn.style.background = 'rgba(239, 68, 68, 0.25)';
+          btn.style.color = 'var(--danger)';
+          btn.style.borderColor = 'rgba(239, 68, 68, 0.6)';
+          btn.innerText = '⏹ Stop Camera';
+        }
+
+        ['btnSafe', 'btnCompression', 'btnSimSafe', 'btnSimCompression'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.classList.remove('active');
+        });
+
+        // Inform backend to listen for live feed
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({ type: 'select_feed', feed: 'live' }));
+        }
+
+        // Stream captured camera frames to backend at ~8 fps
+        cameraInterval = setInterval(() => {
+          if (!isLiveCamera || !videoTrack.videoWidth) return;
+          offscreenCtx.drawImage(videoTrack, 0, 0, 640, 480);
+          const b64 = offscreenCanvas.toDataURL('image/jpeg', 0.65);
+          if (ws && ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({ type: 'live_frame', frame: b64 }));
+          }
+        }, 125);
+      } catch (err) {
+        alert('Could not access camera: ' + err.message + '\nFalling back to demo clips.');
+        stopLiveCamera();
+      }
+    }
+
+    function stopLiveCamera() {
+      isLiveCamera = false;
+      if (cameraInterval) {
+        clearInterval(cameraInterval);
+        cameraInterval = null;
+      }
+      if (localStream) {
+        localStream.getTracks().forEach(t => t.stop());
+        localStream = null;
+      }
+      const btn = document.getElementById('btnLiveCam');
+      if (btn) {
+        btn.classList.remove('active');
+        btn.style.background = 'rgba(56, 189, 248, 0.12)';
+        btn.style.color = '#38bdf8';
+        btn.style.borderColor = 'rgba(56, 189, 248, 0.4)';
+        btn.innerText = '🎥 Live Camera';
+      }
+    }
+
     function switchFeed(feed) {
+      if (isLiveCamera && feed !== 'live') {
+        stopLiveCamera();
+      }
       fetch(`/api/select_feed/${feed}`)
         .then(r => r.json())
         .then(() => {
