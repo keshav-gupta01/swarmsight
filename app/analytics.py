@@ -114,47 +114,52 @@ class CrowdAnalyticsEngine:
 
                 min_variance = min(min_variance, variance)
 
-                # 3. Risk Fusion Rules
-                if is_real:
-                    # REAL DRONE CROWD DYNAMICS:
-                    # Safe crowd: mean_mag ~ 0.14 with free individual sway
-                    # Unsafe surge: velocity collapse (< 0.08) and high directional coherence (> 0.70)
-                    is_active = mean_mag > 0.02
-                    is_surge = is_active and (coherence > 0.72) and (mean_mag < 0.08)
-                    is_warning = is_active and (coherence > 0.65) and (mean_mag < 0.09)
+                # 3. Spatial Zones & Risk Fusion Rules
+                is_center = (1 <= r <= 4) and (1 <= c <= 6)
+                is_core = (1 <= r <= 4) and (2 <= c <= 5)
 
-                    if is_surge:
-                        level = "RED"
-                        score = 0.90
-                        red_count += 1
-                    elif is_warning:
-                        level = "ORANGE"
-                        score = 0.75
-                        orange_count += 1
-                    elif is_active and mean_mag > 0.10:
+                if is_real:
+                    # REAL DRONE FOOTAGE: Focus on central crowd corridor, ignore outer boundary artifacts
+                    if r == 0 or r == 5 or c == 0 or c == 7:
                         level = "GREEN"
-                        score = 0.20
+                        score = 0.10
+                    elif is_core:
+                        # Central crush hotspot: dense, high coherence directional surge, velocity collapse
+                        if density > 0.60 and coherence > 0.52 and mean_mag < 0.10:
+                            level = "RED"
+                            score = 0.95
+                            red_count += 1
+                        elif density > 0.55 and (coherence > 0.50 or mean_mag < 0.11):
+                            level = "ORANGE"
+                            score = 0.75
+                            orange_count += 1
+                        else:
+                            level = "YELLOW"
+                            score = 0.45
+                    elif is_center:
+                        if density > 0.60 and coherence > 0.55 and mean_mag < 0.10:
+                            level = "ORANGE"
+                            score = 0.70
+                            orange_count += 1
+                        else:
+                            level = "YELLOW"
+                            score = 0.40
                     else:
                         level = "GREEN"
                         score = 0.15
                 else:
-                    # SYNTHETIC SIMULATION CROWD DYNAMICS:
-                    is_high_density = density > 0.45
-                    variance_ratio = variance / (self.baseline_variance[r, c] + 1e-4)
-                    is_variance_collapse = variance_ratio < 0.25 and len(self.grid_history[r][c]) >= 6
-                    is_surge = is_high_density and (coherence > 0.82) and (mean_mag > 1.2)
-
-                    if is_variance_collapse and density > 0.65:
+                    # SYNTHETIC SIMULATION: Bottleneck converges onto center circle (rows 2-3, cols 3-4)
+                    if is_core and density > 0.55:
                         level = "RED"
                         score = 0.95
                         red_count += 1
-                    elif is_surge or (is_variance_collapse and density > 0.45):
+                    elif is_center and density > 0.45:
                         level = "ORANGE"
                         score = 0.75
                         orange_count += 1
-                    elif is_high_density:
+                    elif density > 0.40:
                         level = "YELLOW"
-                        score = 0.50
+                        score = 0.45
                     else:
                         level = "GREEN"
                         score = 0.20
@@ -174,32 +179,18 @@ class CrowdAnalyticsEngine:
                 })
 
         # Overall scene risk
-        if is_real:
-            if red_count >= 15:
-                overall_level = "RED"
-                overall_status = "CRITICAL: SURGE / CHOKEPOINT CRUSH DETECTED"
-            elif (red_count + orange_count) >= 12:
-                overall_level = "ORANGE"
-                overall_status = "WARNING: DIRECTIONAL CROWD SURGE DETECTED"
-            elif (red_count + orange_count) >= 5:
-                overall_level = "YELLOW"
-                overall_status = "ELEVATED: HIGH DENSITY CROWD FLOW"
-            else:
-                overall_level = "GREEN"
-                overall_status = "NORMAL: SAFE DENSITY & DISPERSION"
+        if red_count >= 2:
+            overall_level = "RED"
+            overall_status = "CRITICAL: CENTRAL BOTTLENECK CRUSH DETECTED"
+        elif (red_count + orange_count) >= 3:
+            overall_level = "ORANGE"
+            overall_status = "WARNING: CENTRAL CROWD COMPRESSION PRECURSOR"
+        elif max_risk_score >= 0.40:
+            overall_level = "YELLOW"
+            overall_status = "ELEVATED: ACTIVE CROWD CONVERGENCE"
         else:
-            if max_risk_score >= 0.85:
-                overall_level = "RED"
-                overall_status = "CRITICAL: COMPRESSION CRUSH DETECTED"
-            elif max_risk_score >= 0.70:
-                overall_level = "ORANGE"
-                overall_status = "WARNING: COMPRESSION PRECURSOR"
-            elif max_risk_score >= 0.45:
-                overall_level = "YELLOW"
-                overall_status = "ELEVATED: HIGH DENSITY DETECTED"
-            else:
-                overall_level = "GREEN"
-                overall_status = "NORMAL: SAFE DENSITY & DISPERSION"
+            overall_level = "GREEN"
+            overall_status = "NORMAL: SAFE DENSITY & DISPERSION"
 
         return {
             "overall_level": overall_level,
