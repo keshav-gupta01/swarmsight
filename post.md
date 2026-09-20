@@ -1,4 +1,4 @@
-# Predicting Crowd Crushes Before They Happen: How We Built SwarmSight on AWS in 10 Hours
+# Predicting Crowd Crushes Before They Happen: How We Built SwarmSight on AWS
 
 *By Keshav Gupta | Built with AWS CDK, Amazon EC2, Amazon DynamoDB, Amazon S3, Amazon SNS, and OpenCV*
 
@@ -8,9 +8,9 @@ Crowd disasters are among the most heartbreaking urban tragedies of our time. Fr
 
 Yet, traditional crowd monitoring fails at the exact moment it is needed most.
 
-During the SwarmSight hackathon build, our team set out to solve this critical public safety problem. Within 10 hours, we architected, built, and deployed **SwarmSight**—an aerial drone crowd safety intelligence platform running live on AWS that detects **crowd compression precursors 5–15 minutes before fatal crushing forces emerge**.
+To address this critical public safety challenge, we architected, built, and deployed **SwarmSight**—an aerial drone crowd safety intelligence platform running live on AWS that detects **crowd compression precursors 5–15 minutes before fatal crushing forces emerge**.
 
-Here is how we built it, why the physics of crowd dynamics changed our entire architecture, and how AWS enabled us to go from an empty repository to a 24/7 live platform in a single sprint.
+Here is how we built it, why the physics of crowd dynamics drove our architecture, and how AWS enabled us to go from concept to a 24/7 live platform.
 
 ---
 
@@ -63,7 +63,7 @@ By fusing spatial density with **Farneback Dense Optical Flow** across an 8×6 s
 
 We instituted a strict constraint: **keep the operational footprint lean, robust, reproducible, and strictly least-privilege.**
 
-Using **AWS CDK (TypeScript)**, we provisioned the complete infrastructure in under 5 minutes across five core AWS services in the `ap-south-1` (Mumbai) region:
+Using **AWS CDK (TypeScript)**, we provisioned the complete infrastructure cleanly across five core AWS services in the `ap-south-1` (Mumbai) region:
 
 ```
                               DRONE VIDEO INPUT
@@ -106,7 +106,7 @@ Using **AWS CDK (TypeScript)**, we provisioned the complete infrastructure in un
 1. **Amazon EC2 (`t3.large`, Ubuntu 22.04 LTS)**:
    Optical flow algorithms require maintaining temporal state between consecutive video frames ($frame_{t}$ and $frame_{t-1}$). Serverless functions (like AWS Lambda) are stateless and incur cold-start latency when processing continuous 15–30 FPS video streams. A dedicated EC2 instance running Uvicorn and OpenCV provides sub-150ms latency for real-time WebSocket broadcasting.
 2. **AWS IAM Instance Profile (`swarmsight-ec2-role`)**:
-   In strict accordance with cloud security best practices, **zero credentials or API keys exist on disk**. The EC2 instance assumes an IAM role via IMDSv2, strictly scoped to the project's named S3 bucket, DynamoDB table, and SNS topic.
+   In strict accordance with cloud security best practices, **zero credentials or API keys exist on disk**. The EC2 instance assumes an IAM role via **IMDSv2 (session-token-enforced)**, eliminating SSRF credential exfiltration vectors and strictly scoped to least privilege across the project's named S3 bucket, DynamoDB table, and SNS topic.
 3. **Amazon DynamoDB (`swarmsight_alerts`)**:
    Stores real-time alert logs, zone breakdowns, and telemetry with an automated **7-day Time-To-Live (TTL)** attribute (`ttl`), preventing storage bloat while maintaining an audit trail for incident analysis.
 4. **Amazon SNS (`swarmsight-alerts`)**:
@@ -178,7 +178,8 @@ class AlertManager:
 
 We deployed the platform to AWS EC2 using a Linux `systemd` daemon to guarantee 24/7 uptime even when development machines are closed:
 
-🌐 **Live Console URL**: [http://ec2-13-235-100-182.ap-south-1.compute.amazonaws.com:8000](http://ec2-13-235-100-182.ap-south-1.compute.amazonaws.com:8000)
+🌐 **Live Console URL**: [http://ec2-13-235-100-182.ap-south-1.compute.amazonaws.com:8000](http://ec2-13-235-100-182.ap-south-1.compute.amazonaws.com:8000)  
+🎥 **Video Walkthrough & Demo**: [https://youtu.be/0BqONuvBe3I](https://youtu.be/0BqONuvBe3I)
 
 ### What You See in the Live Mission Control Console:
 1. **Real-Time Heatmap Canvas**: Renders aerial drone footage with semi-transparent risk overlays updated live at ~7 FPS over WebSockets.
@@ -192,10 +193,10 @@ We deployed the platform to AWS EC2 using a Linux `systemd` daemon to guarantee 
 
 ## 6. What We Learned & What's Next
 
-Building SwarmSight in 10 hours taught us three critical lessons:
+Building and deploying SwarmSight taught us three critical lessons:
 
 1. **Physical Grounding Beats Generic ML**: Generic person-counters fail where lives are on the line. Modeling the underlying physics of personal space and motion variance solved the false alarm problem.
-2. **Lean Cloud Architecture Delivers Speed**: By using AWS CDK with TypeScript and relying on five standard AWS services, we spent zero time wrestling with complex infrastructure orchestration and 90% of our time perfecting the computer vision engine.
+2. **Lean Cloud Architecture Delivers Velocity**: By using AWS CDK with TypeScript and relying on five standard AWS services, we spent zero time wrestling with complex infrastructure orchestration and 90% of our time perfecting the computer vision engine.
 3. **Responsible AI Must Be Built-in**: SwarmSight requires no facial recognition, discards video frames after memory analysis, and provides transparent explainability metrics so human commanders remain in full control.
 
 ### Future Enterprise Roadmap:
@@ -209,6 +210,7 @@ Building SwarmSight in 10 hours taught us three critical lessons:
 ## 🔗 Try It Out & Contribute
 
 * **Live Demo**: [http://ec2-13-235-100-182.ap-south-1.compute.amazonaws.com:8000](http://ec2-13-235-100-182.ap-south-1.compute.amazonaws.com:8000)
+* **Video Demo**: [YouTube (https://youtu.be/0BqONuvBe3I)](https://youtu.be/0BqONuvBe3I)
 * **GitHub Repository**: [github.com/keshav-gupta01/swarmsight](https://github.com/keshav-gupta01/swarmsight.git)
 
 *Have questions about our optical flow algorithm, CDK stack, or crowd safety engineering? Leave a comment below!*
