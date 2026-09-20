@@ -3,21 +3,32 @@
 [![AWS](https://img.shields.io/badge/AWS-ap--south--1-orange?logo=amazon-aws)](https://aws.amazon.com)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-green?logo=fastapi)](https://fastapi.tiangolo.com)
 [![OpenCV](https://img.shields.io/badge/OpenCV-Computer%20Vision-blue?logo=opencv)](https://opencv.org)
+[![YouTube Demo](https://img.shields.io/badge/YouTube-Video%20Demo-red?logo=youtube)](https://youtu.be/0BqONuvBe3I)
+[![Technical Blog](https://img.shields.io/badge/Architecture-Blog%20Post-blueviolet?logo=markdown)](./post.md)
 [![License](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE)
 
 > **Predicting crowd crush precursors 5–15 minutes before catastrophic surges occur using aerial drone optical flow and micro-motion variance collapse.**
 
 ---
 
+## 📺 Video Walkthrough & Architecture Demonstration
+
+[![SwarmSight Video Walkthrough & Demo](https://img.youtube.com/vi/0BqONuvBe3I/maxresdefault.jpg)](https://youtu.be/0BqONuvBe3I)
+
+*▶️ **Watch the End-to-End System Demo**: [https://youtu.be/0BqONuvBe3I](https://youtu.be/0BqONuvBe3I)*  
+*📖 **Read the Deep-Dive Architecture Blog Post**: [Predicting Crowd Crushes Before They Happen: How We Built SwarmSight on AWS](./post.md)*
+
+---
+
 ## 🌐 Live 24/7 Platform Demonstration
 
-The SwarmSight platform is actively deployed and running 24/7 on AWS:
+The SwarmSight mission control console is actively running 24/7 on AWS:
 
 👉 **[Launch SwarmSight Mission Control Console](https://ec2-13-235-100-182.ap-south-1.compute.amazonaws.com:8000)**
 
 * **Live Web URL**: `https://ec2-13-235-100-182.ap-south-1.compute.amazonaws.com:8000` *(supports both HTTPS and HTTP)*
 * **Region**: `ap-south-1` (Mumbai)
-* **Instance**: `i-0beef7562efedbba0` (`t3.large`, containerized behind Nginx SSL)
+* **Compute**: AWS EC2 `t3.large` (containerized in Docker behind Nginx SSL)
 * **Status**: Live 24/7 & Publicly Accessible
 
 ---
