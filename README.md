@@ -13,11 +13,11 @@
 
 The SwarmSight platform is actively deployed and running 24/7 on AWS:
 
-👉 **[Launch SwarmSight Mission Control Console](http://ec2-13-235-100-182.ap-south-1.compute.amazonaws.com:8000)**
+👉 **[Launch SwarmSight Mission Control Console](https://ec2-13-235-100-182.ap-south-1.compute.amazonaws.com:8000)**
 
-* **Live Web URL**: `http://ec2-13-235-100-182.ap-south-1.compute.amazonaws.com:8000`
+* **Live Web URL**: `https://ec2-13-235-100-182.ap-south-1.compute.amazonaws.com:8000` *(supports both HTTPS and HTTP)*
 * **Region**: `ap-south-1` (Mumbai)
-* **Instance**: `i-0beef7562efedbba0` (`t3.large`, persistent `systemd` daemon)
+* **Instance**: `i-0beef7562efedbba0` (`t3.large`, containerized behind Nginx SSL)
 * **Status**: Live 24/7 & Publicly Accessible
 
 ---

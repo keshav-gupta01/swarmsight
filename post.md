@@ -202,16 +202,16 @@ class AlertManager:
 
 The platform is running 24/7 on AWS EC2 inside Docker, fronted by Nginx:
 
-🌐 **Live Console URL**: [http://ec2-13-235-100-182.ap-south-1.compute.amazonaws.com:8000](http://ec2-13-235-100-182.ap-south-1.compute.amazonaws.com:8000)  
+🌐 **Live Console URL**: [https://ec2-13-235-100-182.ap-south-1.compute.amazonaws.com:8000](https://ec2-13-235-100-182.ap-south-1.compute.amazonaws.com:8000) *(auto-redirects from HTTP)*  
 🎥 **Video Walkthrough & Demo**: [https://youtu.be/0BqONuvBe3I](https://youtu.be/0BqONuvBe3I)
 
 ### What You Experience in the Redesigned Mission Control Console:
-1. **Interactive Hero Banner**: Prompt inviting evaluators to explore pre-recorded aerial scenarios or click **`🎥 Try With Your Live Camera`** to test with their own webcam.
+1. **Interactive Hero Banner**: Prompt inviting evaluators to explore pre-recorded aerial scenarios or tap **`🎥 Try With Your Live Camera`** to test with their phone or webcam.
 2. **Preset Scenario Switcher**:
    * **Drone Alpha (Safe Crowd)**: Shows high-density festival crowd with natural swaying jitter ($Var > 0.50$, remains **GREEN**).
    * **Drone Bravo (Compression Precursor)**: Real drone footage of a bottleneck corridor where variance collapses ($Var < 0.25$), triggering immediate **ORANGE / RED** crush warnings.
 3. **Anticipatory Trajectory & Countdown**: Displays live countdowns (e.g. `⏱ ~24s to critical`) and dynamic trajectory badges.
-4. **Interactive Spatial Zone Inspector**: Hover over any 1 of 48 grid sectors to inspect live density %, flow velocity, micro-motion variance, and rate of change ($dD/dt$).
+4. **Interactive Spatial Zone Inspector**: Hover or tap any 1 of 48 grid sectors to inspect live density %, flow velocity, micro-motion variance, and rate of change ($dD/dt$).
 5. **Explainability Audit Feed**: Real-time log explaining the exact physics that triggered each alert, verified against DynamoDB persistence and SNS dispatches.
 
 ---
@@ -228,7 +228,7 @@ Building and deploying SwarmSight taught us three critical lessons:
 
 ## 🔗 Try It Out & Contribute
 
-* **Live Demo**: [http://ec2-13-235-100-182.ap-south-1.compute.amazonaws.com:8000](http://ec2-13-235-100-182.ap-south-1.compute.amazonaws.com:8000)
+* **Live Demo**: [https://ec2-13-235-100-182.ap-south-1.compute.amazonaws.com:8000](https://ec2-13-235-100-182.ap-south-1.compute.amazonaws.com:8000)
 * **Video Demo**: [YouTube (https://youtu.be/0BqONuvBe3I)](https://youtu.be/0BqONuvBe3I)
 * **GitHub Repository**: [github.com/keshav-gupta01/swarmsight](https://github.com/keshav-gupta01/swarmsight.git)
 

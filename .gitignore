@@ -38,4 +38,16 @@ Thumbs.db
 .env.*
 *.pem
 *.pub
+*.key
+*.crt
+*.pfx
+*.p12
+*.token
+*.log
+.aws/
+credentials
+id_rsa
+id_rsa*
+id_ed25519
+id_ed25519*
 swarmsight_ec2_connect
