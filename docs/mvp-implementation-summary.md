@@ -24,7 +24,7 @@ All resources were provisioned using AWS CDK (TypeScript) under strict least-pri
 | Resource Type | AWS Identifier | Details & Configuration |
 |:---|:---|:---|
 | **EC2 Instance** | `i-0beef7562efedbba0` | `t3.large` (2 vCPU, 8 GB RAM, 30 GB gp3 encrypted EBS). Runs Ubuntu 22.04 LTS, managed via persistent `systemd` service (`swarmsight.service`). |
-| **Public IPv4** | `13.235.100.182` | Live web console accessible 24/7 at `http://13.235.100.182:8000`. |
+| **Public IPv4 & DNS** | `13.235.100.182`<br>`ec2-13-235-100-182.ap-south-1.compute.amazonaws.com` | Live web console accessible 24/7 at `http://ec2-13-235-100-182.ap-south-1.compute.amazonaws.com:8000` (or `http://13.235.100.182:8000`). |
 | **Security Group** | `sg-0372d0bbfb5aa0932` (`swarmsight-sg`) | **Port 22 (SSH/EIC)**: Locked to operator IP (`47.15.119.56/32`) and AWS EC2 Instance Connect CIDR (`13.233.177.0/29`).<br>**Port 8000 (Web Console)**: Open to `0.0.0.0/0` for live judging and demo access across cellular CGNAT. |
 | **IAM Instance Role** | `swarmsight-ec2-role` | Principal: `ec2.amazonaws.com`. Instance profile attached to EC2—**zero hardcoded keys**. Scoped strictly to project S3, DynamoDB, and SNS. |
 | **S3 Storage Bucket** | `swarmsight-demo-kesha` | Private bucket with AWS SSE-S3 encryption and SSL enforcement. Stores `clips/` (app deployment tarballs and demo clips) and `snapshots/`. |
@@ -158,5 +158,5 @@ sudo systemctl restart swarmsight.service
 sudo journalctl -u swarmsight.service -f
 
 # 24/7 Live Mission Console URL
-# Open in browser: http://13.235.100.182:8000
+# Open in browser: http://ec2-13-235-100-182.ap-south-1.compute.amazonaws.com:8000
 ```

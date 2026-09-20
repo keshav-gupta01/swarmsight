@@ -178,7 +178,7 @@ class AlertManager:
 
 We deployed the platform to AWS EC2 using a Linux `systemd` daemon to guarantee 24/7 uptime even when development machines are closed:
 
-🌐 **Live Console URL**: [http://13.235.100.182:8000](http://13.235.100.182:8000)
+🌐 **Live Console URL**: [http://ec2-13-235-100-182.ap-south-1.compute.amazonaws.com:8000](http://ec2-13-235-100-182.ap-south-1.compute.amazonaws.com:8000)
 
 ### What You See in the Live Mission Control Console:
 1. **Real-Time Heatmap Canvas**: Renders aerial drone footage with semi-transparent risk overlays updated live at ~7 FPS over WebSockets.
@@ -208,7 +208,7 @@ Building SwarmSight in 10 hours taught us three critical lessons:
 
 ## 🔗 Try It Out & Contribute
 
-* **Live Demo**: [http://13.235.100.182:8000](http://13.235.100.182:8000)
+* **Live Demo**: [http://ec2-13-235-100-182.ap-south-1.compute.amazonaws.com:8000](http://ec2-13-235-100-182.ap-south-1.compute.amazonaws.com:8000)
 * **GitHub Repository**: [github.com/keshav-gupta01/swarmsight](https://github.com/keshav-gupta01/swarmsight.git)
 
 *Have questions about our optical flow algorithm, CDK stack, or crowd safety engineering? Leave a comment below!*
