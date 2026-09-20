@@ -483,6 +483,18 @@
           </div>
         </div>
 
+        <!-- Predictive Anticipatory Forecast Card -->
+        <div class="card" style="border: 1px solid rgba(56, 189, 248, 0.25); background: linear-gradient(180deg, rgba(18, 24, 38, 0.95), rgba(15, 23, 42, 0.85));">
+          <div class="card-title" style="display: flex; justify-content: space-between; align-items: center;">
+            <span>⏱️ Predictive Forecast</span>
+            <span id="forecastBadge" class="tag-dynamo" style="font-size: 10px; text-transform: uppercase;">TRAJECTORY STABLE</span>
+          </div>
+          <div id="forecastBox" style="font-family: var(--font-mono); font-size: 12px; padding: 10px 12px; border-radius: 8px; background: rgba(0,0,0,0.35); border-left: 4px solid var(--accent);">
+            <div id="forecastSummaryText" style="color: #f1f5f9; font-weight: 700; line-height: 1.4;">All 48 spatial zones stable at normal flow rate</div>
+            <div id="forecastSubText" style="font-size: 10.5px; color: var(--text-muted); margin-top: 5px;">Trend Extrapolation: In-memory rolling time-series</div>
+          </div>
+        </div>
+
         <!-- Metric Gauges -->
         <div class="card">
           <div class="card-title">📊 Real-Time Fusion Metrics</div>
@@ -527,6 +539,8 @@
             <div class="inspector-item"><span>Flow Velocity:</span><span id="inspVelocity">--</span></div>
             <div class="inspector-item"><span>Micro-Motion Var:</span><span id="inspVariance">--</span></div>
             <div class="inspector-item"><span>Coherence:</span><span id="inspCoherence">--</span></div>
+            <div class="inspector-item"><span>Forecast:</span><b id="inspForecast" style="color: var(--accent);">--</b></div>
+            <div class="inspector-item"><span>Rate (dD/dt):</span><span id="inspRate">--</span></div>
             <div class="inspector-item"><span>Severity:</span><b id="inspLevel" style="color: var(--safe);">--</b></div>
           </div>
         </div>
@@ -564,6 +578,13 @@
     const barVariance = document.getElementById('barVariance');
     const valScore = document.getElementById('valScore');
     const barScore = document.getElementById('barScore');
+
+    // Forecast DOM elements
+    const forecastBadge = document.getElementById('forecastBadge');
+    const forecastBox = document.getElementById('forecastBox');
+    const forecastSummaryText = document.getElementById('forecastSummaryText');
+    const inspForecast = document.getElementById('inspForecast');
+    const inspRate = document.getElementById('inspRate');
 
     // Inspector DOM elements
     const inspZone = document.getElementById('inspZone');
@@ -686,6 +707,16 @@
           ctx.lineWidth = (z.row === hoveredRow && z.col === hoveredCol) ? 2 : 1;
           ctx.strokeRect(x, y, cellW, cellH);
         }
+
+        // Predictive dashed outline on zones nearing critical compression
+        if (z.forecast_seconds !== null && z.forecast_seconds <= 120 && z.forecast_seconds > 0) {
+          ctx.save();
+          ctx.strokeStyle = '#f97316';
+          ctx.lineWidth = 2.5;
+          ctx.setLineDash([5, 3]);
+          ctx.strokeRect(x + 2, y + 2, cellW - 4, cellH - 4);
+          ctx.restore();
+        }
       });
     }
 
@@ -707,6 +738,25 @@
       valScore.innerText = t.max_risk_score.toFixed(2);
       barScore.style.width = `${t.max_risk_score * 100}%`;
 
+      // Update Predictive Forecasting UI
+      if (t.forecast_summary && forecastSummaryText && forecastBadge) {
+        forecastSummaryText.innerText = t.forecast_summary;
+        forecastBadge.innerText = t.forecast_badge || 'TRAJECTORY STABLE';
+        if (t.earliest_forecast_seconds && t.earliest_forecast_seconds <= 120) {
+          forecastBox.style.borderLeftColor = 'var(--danger)';
+          forecastBadge.style.color = 'var(--danger)';
+          forecastBadge.style.background = 'rgba(239, 68, 68, 0.15)';
+        } else if (t.forecast_badge === 'ELEVATED RISK') {
+          forecastBox.style.borderLeftColor = 'var(--orange)';
+          forecastBadge.style.color = 'var(--orange)';
+          forecastBadge.style.background = 'rgba(249, 115, 22, 0.15)';
+        } else {
+          forecastBox.style.borderLeftColor = 'var(--accent)';
+          forecastBadge.style.color = 'var(--accent)';
+          forecastBadge.style.background = 'rgba(56, 189, 248, 0.15)';
+        }
+      }
+
       if (t.zones) {
         const active = t.zones.find(z => z.row === hoveredRow && z.col === hoveredCol);
         if (active) {
@@ -717,6 +767,19 @@
           inspCoherence.innerText = `${active.coherence}`;
           inspLevel.innerText = active.level;
           inspLevel.style.color = `var(--${active.level === 'GREEN' ? 'safe' : (active.level === 'YELLOW' ? 'warn' : (active.level === 'ORANGE' ? 'orange' : 'danger'))})`;
+          
+          if (inspForecast && inspRate) {
+            inspForecast.innerText = active.forecast_label || 'Stable';
+            const rateVal = active.rate_per_minute || 0;
+            inspRate.innerText = `${rateVal > 0 ? '+' : ''}${rateVal}%/min`;
+            if (active.forecast_seconds !== null && active.forecast_seconds <= 120) {
+              inspForecast.style.color = 'var(--danger)';
+            } else if (active.trend_direction === 'rising') {
+              inspForecast.style.color = 'var(--orange)';
+            } else {
+              inspForecast.style.color = 'var(--accent)';
+            }
+          }
         }
       }
     }

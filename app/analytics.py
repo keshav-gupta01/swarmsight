@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 from collections import deque
 from typing import Dict, List, Any
+from app.forecasting import ForecastEngine
 
 class CrowdAnalyticsEngine:
     """
@@ -24,12 +25,21 @@ class CrowdAnalyticsEngine:
         
         # Per-cell baseline variance (calibrated during normal movement)
         self.baseline_variance = np.full((rows, cols), 1.5, dtype=np.float32)
+        
+        # In-memory predictive forecasting engine
+        self.forecast_engine = ForecastEngine(
+            rows=rows,
+            cols=cols,
+            window_seconds=30.0,
+            critical_density_thresh=0.60
+        )
 
     def reset(self):
         self.prev_gray = None
         for r in range(self.rows):
             for c in range(self.cols):
                 self.grid_history[r][c].clear()
+        self.forecast_engine.reset()
 
     def process_frame(self, frame: np.ndarray, feed: str = "safe") -> Dict[str, Any]:
         is_real = ("sim" not in feed)
@@ -185,6 +195,9 @@ class CrowdAnalyticsEngine:
                     "score": round(score, 2)
                 })
 
+        # Run in-memory predictive forecasting on all zones
+        zones = self.forecast_engine.update_and_forecast(zones)
+
         # Overall scene risk
         if red_count >= 2:
             overall_level = "RED"
@@ -199,11 +212,37 @@ class CrowdAnalyticsEngine:
             overall_level = "GREEN"
             overall_status = "NORMAL: SAFE DENSITY & DISPERSION"
 
+        # Formulate scene-level predictive forecast summary
+        earliest_forecast_seconds = None
+        critical_zone_label = None
+        for z in zones:
+            f_sec = z.get("forecast_seconds")
+            if f_sec is not None and f_sec > 0:
+                if earliest_forecast_seconds is None or f_sec < earliest_forecast_seconds:
+                    earliest_forecast_seconds = f_sec
+                    critical_zone_label = z["id"]
+
+        if earliest_forecast_seconds is not None:
+            forecast_summary = f"{critical_zone_label.upper()} projected to cross critical density in ~{earliest_forecast_seconds}s"
+            forecast_badge = "WARNING: CONVERGENCE"
+        elif red_count >= 1:
+            forecast_summary = "CRITICAL: Zone threshold exceeded — Immediate dispersion advisory"
+            forecast_badge = "CRITICAL REACHED"
+        elif orange_count >= 1:
+            forecast_summary = "PRECURSOR: Compression detected in bottleneck zone"
+            forecast_badge = "ELEVATED RISK"
+        else:
+            forecast_summary = "All 48 spatial zones stable at normal flow rate"
+            forecast_badge = "TRAJECTORY STABLE"
+
         return {
             "overall_level": overall_level,
             "overall_status": overall_status,
             "max_risk_score": round(max_risk_score, 2),
             "max_density": round(max_density, 2),
             "min_variance": round(min_variance if min_variance < 900 else 1.0, 4 if is_real else 3),
+            "forecast_summary": forecast_summary,
+            "forecast_badge": forecast_badge,
+            "earliest_forecast_seconds": earliest_forecast_seconds,
             "zones": zones
         }
