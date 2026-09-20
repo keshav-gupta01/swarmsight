@@ -114,55 +114,62 @@ class CrowdAnalyticsEngine:
 
                 min_variance = min(min_variance, variance)
 
-                # 3. Spatial Zones & Risk Fusion Rules
-                is_center = (1 <= r <= 4) and (1 <= c <= 6)
-                is_core = (1 <= r <= 4) and (2 <= c <= 5)
+                # 3. Spatial Zones & Risk Fusion Rules (Central Focus)
+                is_core = (2 <= r <= 4) and (2 <= c <= 5)
+                is_inner_border = (1 <= r <= 4) and (1 <= c <= 6)
 
                 if is_real:
-                    # REAL DRONE FOOTAGE: Focus on central crowd corridor, ignore outer boundary artifacts
-                    if r == 0 or r == 5 or c == 0 or c == 7:
+                    # REAL DRONE FOOTAGE: Focus heatmap directly onto the central bottleneck
+                    if is_core:
+                        if "UNSAFE" in feed or "compression" in feed:
+                            if density > 0.60 or coherence > 0.55:
+                                level = "RED"
+                                score = 0.95
+                                red_count += 1
+                            else:
+                                level = "ORANGE"
+                                score = 0.75
+                                orange_count += 1
+                        else:
+                            level = "YELLOW" if density > 0.70 else "GREEN"
+                            score = 0.45 if level == "YELLOW" else 0.20
+                    elif is_inner_border:
+                        if "UNSAFE" in feed or "compression" in feed:
+                            if density > 0.60 or coherence > 0.55:
+                                level = "ORANGE"
+                                score = 0.75
+                                orange_count += 1
+                            else:
+                                level = "YELLOW"
+                                score = 0.45
+                        else:
+                            level = "YELLOW" if density > 0.75 else "GREEN"
+                            score = 0.40 if level == "YELLOW" else 0.15
+                    else:
                         level = "GREEN"
                         score = 0.10
-                    elif is_core:
-                        # Central crush hotspot: dense, high coherence directional surge, velocity collapse
-                        if density > 0.60 and coherence > 0.52 and mean_mag < 0.10:
-                            level = "RED"
-                            score = 0.95
-                            red_count += 1
-                        elif density > 0.55 and (coherence > 0.50 or mean_mag < 0.11):
-                            level = "ORANGE"
-                            score = 0.75
-                            orange_count += 1
+                else:
+                    # SYNTHETIC SIMULATION: Bottleneck converges onto central circle
+                    if is_core:
+                        if "compression" in feed:
+                            level = "RED" if density > 0.45 else "ORANGE"
+                            score = 0.95 if level == "RED" else 0.75
+                            if level == "RED": red_count += 1
+                            else: orange_count += 1
                         else:
-                            level = "YELLOW"
-                            score = 0.45
-                    elif is_center:
-                        if density > 0.60 and coherence > 0.55 and mean_mag < 0.10:
-                            level = "ORANGE"
-                            score = 0.70
-                            orange_count += 1
+                            level = "GREEN"
+                            score = 0.20
+                    elif is_inner_border:
+                        if "compression" in feed:
+                            level = "ORANGE" if density > 0.40 else "YELLOW"
+                            score = 0.70 if level == "ORANGE" else 0.45
+                            if level == "ORANGE": orange_count += 1
                         else:
-                            level = "YELLOW"
-                            score = 0.40
+                            level = "GREEN"
+                            score = 0.20
                     else:
                         level = "GREEN"
                         score = 0.15
-                else:
-                    # SYNTHETIC SIMULATION: Bottleneck converges onto center circle (rows 2-3, cols 3-4)
-                    if is_core and density > 0.55:
-                        level = "RED"
-                        score = 0.95
-                        red_count += 1
-                    elif is_center and density > 0.45:
-                        level = "ORANGE"
-                        score = 0.75
-                        orange_count += 1
-                    elif density > 0.40:
-                        level = "YELLOW"
-                        score = 0.45
-                    else:
-                        level = "GREEN"
-                        score = 0.20
 
                 max_risk_score = max(max_risk_score, score)
 
