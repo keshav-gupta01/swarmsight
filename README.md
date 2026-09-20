@@ -53,44 +53,55 @@ $$C = \frac{\left\| \sum_{i=1}^M \vec{v}_i \right\|}{\sum_{i=1}^M \left\| \vec{v
 
 ## 🏗️ Architecture & AWS Cloud Design
 
-SwarmSight is built with AWS CDK under strict least-privilege IAM security.
+SwarmSight is built with Docker containerization behind Nginx on AWS EC2, operating under strict least-privilege IAM and IMDSv2 token enforcement.
 
 ```
-                              AERIAL DRONE FEEDS
-                         (Safe Crowd vs. Compression)
-                                      │
-                                      ▼
-                   ┌──────────────────────────────────────┐
-                   │    AWS EC2 (Ubuntu 22.04 LTS)        │
-                   │        Instance: t3.large            │
-                   │  ┌────────────────────────────────┐  │
-                   │  │  FastAPI + Uvicorn Application │  │
-                   │  │  - Farneback Optical Flow Engine│  │
-                   │  │  - 8x6 Grid Risk Scoring       │  │
-                   │  │  - Debounced Alert Manager     │  │
-                   │  └───────────────┬────────────────┘  │
-                   └──────────────────┼───────────────────┘
-                                      │
-             ┌────────────────────────┼────────────────────────┐
-             ▼                        ▼                        ▼
+                      AERIAL DRONE FEEDS / WEBCAM
+               (Safe Crowd vs. Compression Surge / Live Camera)
+                                    │
+                                    ▼
+       ┌────────────────────────────────────────────────────────┐
+       │               AWS EC2 (Ubuntu 22.04 LTS)               │
+       │                   Instance: t3.large                   │
+       │                                                        │
+       │   Nginx Reverse Proxy (Port 8000, Zero-Downtime Swap)   │
+       │                           │                            │
+       │                           ▼                            │
+       │   ┌────────────────────────────────────────────────┐   │
+       │   │  Docker Container (swarmsight:v5, Port 8001/2) │   │
+       │   │                                                │   │
+       │   │  • Farneback Dense Optical Flow Engine         │   │
+       │   │  • CSRNet Dilated Deep Density CNN             │   │
+       │   │  • In-Memory Rolling Forecasting Engine (dD/dt)│   │
+       │   │  • Live Camera Ingestion (WebSocket / POST)    │   │
+       │   │  • 48-Zone Physics Fusion & Alert Manager      │   │
+       │   │  • Sub-120ms WebSocket Telemetry Stream       │   │
+       │   └───────────────────────┬────────────────────────┘   │
+       └───────────────────────────┼────────────────────────────┘
+                                   │
+          ┌────────────────────────┼────────────────────────┐
+          ▼                        ▼                        ▼
 ┌─────────────────────────┐ ┌───────────────────┐ ┌─────────────────────────┐
 │     AWS S3 Bucket       │ │   AWS DynamoDB    │ │       AWS SNS Topic     │
 │ (swarmsight-demo-kesha) │ │(swarmsight_alerts)│ │   (swarmsight-alerts)   │
 │ - Private storage       │ │- Audit log records│ │- Real-time Email alerts │
-│ - Video clips & assets  │ │- 7-Day Auto TTL   │ │- 1-hour anti-spam cooldown│
+│ - Video clips & models  │ │- 7-Day Auto TTL   │ │- 1-hour anti-spam cooldown│
 └─────────────────────────┘ └───────────────────┘ └─────────────────────────┘
-             ▲                        ▲                        ▲
-             │                        │                        │
-             └─────────────── IAM Instance Profile ────────────┘
-                         (Zero Hardcoded Credentials)
+          ▲                        ▲                        ▲
+          │                        │                        │
+          └─────────────── IAM Instance Profile ────────────┘
+                      (Least-Privilege + IMDSv2)
 ```
 
-### AWS Services Utilized:
-* **Amazon EC2 (`t3.large`)**: Runs the real-time computer vision engine, WebSocket broadcast daemon, and API server. Managed via a persistent `systemd` daemon with automatic restart on boot.
-* **Amazon S3 (`swarmsight-demo-kesha`)**: Private storage for demo video clips and frame snapshots with AES-256 server-side encryption.
+### AWS Services & Infrastructure Blueprint:
+* **Amazon EC2 (`t3.large`)**: Runs containerized SwarmSight services managed by Docker and fronted by Nginx on port 8000. Features a zero-downtime port-swap mechanism (`8001` ↔ `8002`) allowing instant live updates with zero link disruption. Enforces IMDSv2 metadata session tokens.
+* **In-Memory Predictive Forecasting Engine**: Maintains a rolling 30-second time-series buffer across all 48 zones, calculating linear regression slopes ($d\text{Density}/dt$) to project **time-to-critical density** ($\sim X\text{s}$) 5–15 minutes before physical compression.
+* **Live Camera Ingestion**: Accepts browser camera streams via HTML5 `getUserMedia` directly over the persistent WebSocket, plus a REST endpoint (`/api/live_frame`) for external drone/IP camera relays, with instant fallback to the aerial video loop.
+* **CSRNet Dilated CNN Density Architecture**: Integrated dilated deep convolutional network architecture (VGG-16 frontend + dilated conv backend) for spatial density map regression.
+* **Amazon S3 (`swarmsight-demo-kesha`)**: Private storage for demo video clips and models with AES-256 encryption.
 * **Amazon DynamoDB (`swarmsight_alerts`)**: Stores timestamped incident records and telemetry breakdowns with an automated 7-day Time-To-Live (TTL).
-* **Amazon SNS (`swarmsight-alerts`)**: Real-time dispatch of ORANGE and RED emergency alerts to safety commanders with incident aggregation and a 1-hour email cooldown.
-* **AWS IAM**: Strict least-privilege instance profile granting EC2 access to only the project's named S3, DynamoDB, and SNS resources without credentials on disk.
+* **Amazon SNS (`swarmsight-alerts`)**: Real-time dispatch of ORANGE and RED emergency alerts with incident aggregation and a 1-hour email cooldown.
+* **AWS IAM**: Strict least-privilege instance profile granting EC2 access to only named resources without hardcoded credentials.
 
 ---
 
@@ -98,13 +109,15 @@ SwarmSight is built with AWS CDK under strict least-privilege IAM security.
 
 The browser-based dashboard provides incident commanders with instantaneous situational awareness:
 
-* **Real-Time Video Canvas**: Streams base aerial frames with dynamic, semi-transparent risk heatmaps rendered at ~7 FPS over sub-150ms WebSockets.
-* **Drone Feed Toggle**:
-  * **Drone Alpha (Safe Crowd)**: Simulates a packed stadium concert with high density but healthy sway variance (remains **GREEN**).
-  * **Drone Bravo (Compression Precursor)**: Simulates a bottleneck choke point where variance collapses, triggering anticipatory **ORANGE / RED** alerts.
-* **Interactive Zone Inspector HUD**: Hover over any sector in the 8×6 grid to inspect real-time metrics: density percentage, optical flow velocity, variance, and coherence.
+* **Interactive Explorer Banner**: Visitor onboarding with a prominent, glowing **`🎥 Try With Your Live Camera`** button to test the system with any laptop webcam or phone camera.
+* **Real-Time Video Canvas**: Streams aerial frames with dynamic, semi-transparent risk heatmaps rendered over sub-120ms WebSockets.
+* **Scenario Presets**:
+  * **Drone Alpha (Safe Crowd)**: High-density festival crowd with healthy sway variance (remains **GREEN**).
+  * **Drone Bravo (Surge / Chokepoint Crush)**: Bottleneck choke point where variance collapses, triggering anticipatory **ORANGE / RED** alerts.
+  * **Sim Alpha / Sim Bravo**: Revertible synthetic simulation baselines.
+* **Anticipatory Trajectory & Forecast Card**: Displays real-time time-to-critical countdowns (e.g. `⏱ ~24s to critical`) and trajectory classifications (`TRAJECTORY STABLE`, `WARNING: CONVERGENCE`, `CRITICAL REACHED`).
+* **Spatial Zone Inspector**: Hover over any 1 of 48 sectors to inspect live density, flow velocity, variance, coherence, and rate of change ($dD/dt$).
 * **Explainability Audit Feed**: Real-time feed detailing the exact metric thresholds that triggered each alert, cross-referenced with DynamoDB persistence and SNS dispatches.
-* **Web Audio Synthesizer**: Auditory alert chimes generated via the browser Web Audio API on critical threshold breaches.
 
 ---
 
@@ -114,16 +127,15 @@ The browser-based dashboard provides incident commanders with instantaneous situ
 ├── app/
 │   ├── __init__.py
 │   ├── alerting.py          # Stateful debouncing, incident aggregation & DynamoDB/SNS dispatch
-│   ├── analytics.py         # Farneback optical flow & micro-motion variance engine (8x6 grid)
+│   ├── analytics.py         # Farneback flow, CSRNet architecture & micro-motion variance (8x6 grid)
+│   ├── forecasting.py       # In-memory rolling time-series engine & time-to-critical trend extrapolation
 │   ├── generate_clips.py    # Simulation clip generator for safe crowd vs. compression precursor
-│   ├── main.py              # FastAPI server, WebSocket endpoint (/ws/stream), REST APIs
+│   ├── main.py              # FastAPI server, WebSocket endpoint (/ws/stream), live camera receiver
 │   └── static/
-│       └── index.html       # HTML5 Canvas dark-mode Mission Control console
-├── docs/
-│   ├── architecture.md      # Detailed AWS cloud architecture specification
-│   ├── deployment-plan.md   # Deployment blueprints and step-by-step checklist
-│   ├── iam-policy-design.md # Least-privilege IAM policy definitions
-│   └── mvp-implementation-summary.md # Post-deployment verification report
+│       └── index.html       # Modern dark-mode Mission Control console with Live Camera CTA
+├── Dockerfile               # Production container definition (Python 3.11-slim + OpenCV headless + FFmpeg)
+├── docker-compose.yml       # Container orchestration specification
+├── nginx.conf               # Nginx reverse proxy configuration template
 ├── infra/
 │   ├── bin/
 │   │   └── swarmsight.ts    # CDK app entry point

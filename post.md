@@ -104,7 +104,7 @@ Using **AWS CDK (TypeScript)**, we provisioned the complete infrastructure clean
 ### Why These Specific AWS Services?
 
 1. **Amazon EC2 (`t3.large`, Ubuntu 22.04 LTS)**:
-   Optical flow algorithms require maintaining temporal state between consecutive video frames ($frame_{t}$ and $frame_{t-1}$). Serverless functions (like AWS Lambda) are stateless and incur cold-start latency when processing continuous 15–30 FPS video streams. A dedicated EC2 instance running Uvicorn and OpenCV provides sub-150ms latency for real-time WebSocket broadcasting.
+   Optical flow algorithms require maintaining temporal state between consecutive video frames ($frame_{t}$ and $frame_{t-1}$). We packaged the entire application stack into production Docker containers fronted by an **Nginx reverse proxy on port 8000**, enabling seamless **zero-downtime port-swap deployments** (`8001` ↔ `8002`) without ever shifting the public URL or Elastic IP.
 2. **AWS IAM Instance Profile (`swarmsight-ec2-role`)**:
    In strict accordance with cloud security best practices, **zero credentials or API keys exist on disk**. The EC2 instance assumes an IAM role via **IMDSv2 (session-token-enforced)**, eliminating SSRF credential exfiltration vectors and strictly scoped to least privilege across the project's named S3 bucket, DynamoDB table, and SNS topic.
 3. **Amazon DynamoDB (`swarmsight_alerts`)**:
@@ -112,7 +112,7 @@ Using **AWS CDK (TypeScript)**, we provisioned the complete infrastructure clean
 4. **Amazon SNS (`swarmsight-alerts`)**:
    Sends immediate push notifications and emails to event commanders when ORANGE or RED thresholds are breached.
 5. **Amazon S3 (`swarmsight-demo-kesha`)**:
-   Private, encrypted object storage for video clips and captured frame snapshots.
+   Private, encrypted object storage for video clips, models, and captured frame snapshots.
 
 ---
 
@@ -145,7 +145,33 @@ if density > 0.65 and variance < 0.25:
     risk_level = "RED"  # Precursor to crowd crush!
 ```
 
-### 2. Eliminating Alert Storms (`alerting.py`)
+### 2. Predictive Forecasting Engine (`forecasting.py`)
+
+To shift from *reactive detection* to *anticipatory intervention*, we built an in-memory rolling time-series engine that tracks per-zone trajectories and computes linear rate-of-change ($\frac{\Delta \text{Density}}{\Delta t}$):
+
+```python
+# Linear regression over rolling 30s density observations
+slope, _ = np.polyfit(timestamps, densities, deg=1)
+rate_per_min = slope * 60.0 * 100.0
+
+# Project exact seconds until critical compression threshold (0.60)
+if slope > 0.003 and density < 0.60:
+    seconds_to_critical = int((0.60 - density) / slope)
+    forecast_label = f"⏱ ~{seconds_to_critical}s to critical"
+```
+
+### 3. Live Camera Ingestion with Instant Fallback (`main.py`)
+
+Rather than only replaying pre-recorded clips, SwarmSight lets anyone point their webcam or phone camera at a room:
+- Uses browser `navigator.mediaDevices.getUserMedia` to capture frames at 8 FPS.
+- Streams JPEG frames to FastAPI over the active WebSocket and through `/api/live_frame`.
+- If the camera stream disconnects or latency spikes, the system instantly falls back to the high-density aerial video loop with zero dashboard disruption.
+
+### 4. Deep Density CNN Integration (CSRNet)
+
+We implemented the **CSRNet dilated convolutional neural network** architecture (VGG-16 frontend + dilated conv backend) directly in `app/analytics.py`. When model weights are loaded, it computes continuous density maps across all 48 zones; otherwise, it seamlessly falls back to our calibrated high-frequency edge density proxy.
+
+### 5. Eliminating Alert Storms (`alerting.py`)
 
 In an emergency, an algorithm triggering an email every 100 milliseconds will quickly lock up commander mailboxes and hit AWS SNS quota limits. We implemented **Stateful Incident Aggregation** with a strict cooldown:
 
@@ -154,10 +180,8 @@ class AlertManager:
     def __init__(self, table_name, topic_arn, region="ap-south-1"):
         self.sns_cooldown_seconds = 3600.0  # 1 hour anti-spam cooldown
         self.last_sns_time = {}
-        # ... initialized boto3 clients via EC2 IAM profile ...
 
     def evaluate_and_dispatch(self, telemetry):
-        # Aggregate multiple alerting sectors into a single incident report
         alerting_zones = [z for z in telemetry["zones"] if z["level"] in ("ORANGE", "RED")]
         if not alerting_zones:
             return []
@@ -176,18 +200,19 @@ class AlertManager:
 
 ## 5. Live Demonstration & Verification
 
-We deployed the platform to AWS EC2 using a Linux `systemd` daemon to guarantee 24/7 uptime even when development machines are closed:
+The platform is running 24/7 on AWS EC2 inside Docker, fronted by Nginx:
 
 🌐 **Live Console URL**: [http://ec2-13-235-100-182.ap-south-1.compute.amazonaws.com:8000](http://ec2-13-235-100-182.ap-south-1.compute.amazonaws.com:8000)  
 🎥 **Video Walkthrough & Demo**: [https://youtu.be/0BqONuvBe3I](https://youtu.be/0BqONuvBe3I)
 
-### What You See in the Live Mission Control Console:
-1. **Real-Time Heatmap Canvas**: Renders aerial drone footage with semi-transparent risk overlays updated live at ~7 FPS over WebSockets.
-2. **Drone Feed Switcher**:
+### What You Experience in the Redesigned Mission Control Console:
+1. **Interactive Hero Banner**: Prompt inviting evaluators to explore pre-recorded aerial scenarios or click **`🎥 Try With Your Live Camera`** to test with their own webcam.
+2. **Preset Scenario Switcher**:
    * **Drone Alpha (Safe Crowd)**: Shows high-density festival crowd with natural swaying jitter ($Var > 0.50$, remains **GREEN**).
-   * **Drone Bravo (Compression Precursor)**: Simulates a bottleneck choke point where variance collapses ($Var < 0.25$), triggering immediate **ORANGE / RED** warnings.
-3. **Interactive Zone Inspector**: Hovering over any zone on the video feed displays exact numerical metrics: density %, velocity, variance, and flow coherence.
-4. **Explainability Audit Feed**: Shows why each alert was raised and confirms synchronization with DynamoDB and SNS.
+   * **Drone Bravo (Compression Precursor)**: Real drone footage of a bottleneck corridor where variance collapses ($Var < 0.25$), triggering immediate **ORANGE / RED** crush warnings.
+3. **Anticipatory Trajectory & Countdown**: Displays live countdowns (e.g. `⏱ ~24s to critical`) and dynamic trajectory badges.
+4. **Interactive Spatial Zone Inspector**: Hover over any 1 of 48 grid sectors to inspect live density %, flow velocity, micro-motion variance, and rate of change ($dD/dt$).
+5. **Explainability Audit Feed**: Real-time log explaining the exact physics that triggered each alert, verified against DynamoDB persistence and SNS dispatches.
 
 ---
 
@@ -196,14 +221,8 @@ We deployed the platform to AWS EC2 using a Linux `systemd` daemon to guarantee 
 Building and deploying SwarmSight taught us three critical lessons:
 
 1. **Physical Grounding Beats Generic ML**: Generic person-counters fail where lives are on the line. Modeling the underlying physics of personal space and motion variance solved the false alarm problem.
-2. **Lean Cloud Architecture Delivers Velocity**: By using AWS CDK with TypeScript and relying on five standard AWS services, we spent zero time wrestling with complex infrastructure orchestration and 90% of our time perfecting the computer vision engine.
+2. **Zero-Downtime Operations via Port Swapping**: Wrapping the service in Docker behind Nginx allowed us to ship predictive forecasting, live camera ingestion, and UI overhauls with zero downtime on the same public IP.
 3. **Responsible AI Must Be Built-in**: SwarmSight requires no facial recognition, discards video frames after memory analysis, and provides transparent explainability metrics so human commanders remain in full control.
-
-### Future Enterprise Roadmap:
-* **Ingest**: Connect live drones via **Amazon Kinesis Video Streams (KVS)** with WebRTC.
-* **Edge**: Run **AWS IoT Greengrass / Panorama** on ground stations for edge inference failover if drone satellite/cellular uplinks drop.
-* **Predictive AI**: Deploy **Amazon SageMaker** endpoints running CSRNet density map regression and RAFT optical flow.
-* **Evacuation Routing**: Integrate **Amazon Location Service** and dynamic graph algorithms to compute real-time safe egress corridors around choke points.
 
 ---
 

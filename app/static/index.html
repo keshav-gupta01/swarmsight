@@ -2,89 +2,95 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>SwarmSight — Aerial Drone Crowd Safety & Threat Mission Control</title>
+  <title>SwarmSight — Aerial Drone Crowd Safety & Predictive Mission Control</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #090d16;
-      --card-bg: rgba(18, 24, 38, 0.85);
+      --bg: #070a12;
+      --bg-gradient: radial-gradient(circle at 50% 0%, #131d33 0%, #070a12 75%);
+      --card-bg: rgba(15, 23, 42, 0.75);
       --card-border: rgba(255, 255, 255, 0.08);
-      --text: #f3f4f6;
-      --text-muted: #9ca3af;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
       --accent: #38bdf8;
+      --accent-glow: rgba(56, 189, 248, 0.35);
       --safe: #22c55e;
+      --safe-glow: rgba(34, 197, 94, 0.25);
       --warn: #eab308;
       --orange: #f97316;
       --danger: #ef4444;
+      --danger-glow: rgba(239, 68, 68, 0.35);
       --font-main: 'Outfit', sans-serif;
       --font-mono: 'JetBrains Mono', monospace;
     }
-    * { box-sizing: border-box; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      margin: 0;
-      padding: 20px;
-      background: radial-gradient(circle at top, #111827 0%, var(--bg) 100%);
+      background: var(--bg-gradient);
+      background-color: var(--bg);
       color: var(--text);
       font-family: var(--font-main);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
+      padding: 16px 20px 40px;
     }
     .container {
       width: 100%;
-      max-width: 1280px;
+      max-width: 1320px;
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: 16px;
     }
-    /* Top Bar */
+
+    /* Top Navigation Header */
     .header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       background: var(--card-bg);
       border: 1px solid var(--card-border);
-      border-radius: 14px;
-      padding: 16px 24px;
-      backdrop-filter: blur(12px);
+      border-radius: 16px;
+      padding: 14px 22px;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
     }
     .brand {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 14px;
     }
     .logo-icon {
-      width: 40px;
-      height: 40px;
-      border-radius: 10px;
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
       background: linear-gradient(135deg, #0284c7, #38bdf8);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 22px;
-      box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
+      font-size: 24px;
+      box-shadow: 0 0 25px var(--accent-glow);
     }
     .brand-title {
       font-size: 22px;
       font-weight: 800;
       letter-spacing: -0.5px;
-      margin: 0;
       background: linear-gradient(to right, #ffffff, #94a3b8);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
     .brand-sub {
-      font-size: 12px;
+      font-size: 11.5px;
       color: var(--text-muted);
       font-family: var(--font-mono);
       margin-top: 2px;
+      letter-spacing: 0.5px;
     }
     .header-badges {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
     }
     .badge {
       display: flex;
@@ -92,26 +98,31 @@
       gap: 8px;
       padding: 6px 14px;
       border-radius: 9999px;
-      font-size: 12px;
+      font-size: 11.5px;
       font-weight: 700;
       letter-spacing: 0.5px;
       text-transform: uppercase;
       font-family: var(--font-mono);
       transition: all 0.3s ease;
     }
-    .badge-live {
-      background: rgba(34, 197, 94, 0.15);
-      border: 1px solid rgba(34, 197, 94, 0.4);
-      color: var(--safe);
-    }
     .badge-aws {
-      background: rgba(56, 189, 248, 0.15);
-      border: 1px solid rgba(56, 189, 248, 0.4);
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.3);
       color: var(--accent);
     }
+    .badge-live {
+      background: rgba(34, 197, 94, 0.12);
+      border: 1px solid rgba(34, 197, 94, 0.35);
+      color: var(--safe);
+    }
+    .badge-connecting {
+      background: rgba(234, 179, 8, 0.12);
+      border: 1px solid rgba(234, 179, 8, 0.35);
+      color: var(--warn);
+    }
     .pulse-dot {
-      width: 8px;
-      height: 8px;
+      width: 7px;
+      height: 7px;
       border-radius: 50%;
       background: currentColor;
       box-shadow: 0 0 10px currentColor;
@@ -119,14 +130,80 @@
     }
     @keyframes pulse {
       0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.4; transform: scale(0.85); }
+      50% { opacity: 0.35; transform: scale(0.85); }
+    }
+
+    /* Interactive Explorer Banner (Visitor Onboarding) */
+    .hero-banner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: linear-gradient(90deg, rgba(2, 132, 199, 0.18) 0%, rgba(56, 189, 248, 0.08) 50%, rgba(15, 23, 42, 0.8) 100%);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      border-radius: 14px;
+      padding: 14px 20px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 0 30px rgba(56, 189, 248, 0.1);
+    }
+    .hero-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .hero-icon {
+      font-size: 22px;
+    }
+    .hero-text-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .hero-text-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .hero-text-desc b {
+      color: #38bdf8;
+    }
+    .btn-camera-cta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, #0284c7, #0369a1);
+      border: 1px solid #38bdf8;
+      color: #ffffff;
+      padding: 9px 18px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: var(--font-main);
+      box-shadow: 0 0 20px rgba(2, 132, 199, 0.4);
+      transition: all 0.25s ease;
+      white-space: nowrap;
+    }
+    .btn-camera-cta:hover {
+      background: linear-gradient(135deg, #0369a1, #0284c7);
+      box-shadow: 0 0 28px rgba(56, 189, 248, 0.6);
+      transform: translateY(-1px);
+    }
+    .btn-camera-cta.active {
+      background: linear-gradient(135deg, #dc2626, #b91c1c);
+      border-color: #ef4444;
+      box-shadow: 0 0 25px rgba(239, 68, 68, 0.5);
+      animation: alertGlow 1.2s infinite alternate;
+    }
+    @keyframes alertGlow {
+      from { box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); }
+      to { box-shadow: 0 0 30px rgba(239, 68, 68, 0.8); }
     }
 
     /* Main Grid Layout */
     .main-grid {
       display: grid;
-      grid-template-columns: 1fr 400px;
-      gap: 20px;
+      grid-template-columns: 1fr 410px;
+      gap: 16px;
     }
     @media (max-width: 1100px) {
       .main-grid { grid-template-columns: 1fr; }
@@ -137,11 +214,11 @@
       background: var(--card-bg);
       border: 1px solid var(--card-border);
       border-radius: 16px;
-      padding: 20px;
-      backdrop-filter: blur(12px);
+      padding: 18px;
+      backdrop-filter: blur(16px);
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 14px;
       box-shadow: 0 20px 40px rgba(0,0,0,0.4);
     }
     .feed-controls {
@@ -149,41 +226,64 @@
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
-      gap: 12px;
+      gap: 10px;
+    }
+    .control-label {
+      font-size: 11px;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
     }
     .btn-group {
       display: flex;
-      gap: 8px;
-      background: rgba(0,0,0,0.3);
+      align-items: center;
+      gap: 6px;
+      background: rgba(0,0,0,0.35);
       padding: 4px;
       border-radius: 10px;
-      border: 1px solid rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.06);
     }
-    button {
+    button.pill-btn {
       background: transparent;
       border: none;
       color: var(--text-muted);
-      padding: 8px 16px;
+      padding: 7px 14px;
       border-radius: 8px;
-      font-size: 13px;
+      font-size: 12.5px;
       font-weight: 600;
       cursor: pointer;
       font-family: var(--font-main);
       transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
-    button:hover { color: #fff; background: rgba(255,255,255,0.06); }
-    button.active {
+    button.pill-btn:hover { color: #fff; background: rgba(255,255,255,0.06); }
+    button.pill-btn.active {
       background: #0284c7;
       color: #fff;
       box-shadow: 0 4px 12px rgba(2, 132, 199, 0.4);
     }
+    button.pill-btn.danger-pill.active {
+      background: #dc2626;
+      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+    }
     .toggle-btn {
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.1);
-      color: var(--text);
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: var(--text-muted);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 11.5px;
+      font-family: var(--font-mono);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
     }
     .toggle-btn.active {
-      background: rgba(56, 189, 248, 0.2);
+      background: rgba(56, 189, 248, 0.15);
       border-color: var(--accent);
       color: var(--accent);
     }
@@ -194,7 +294,7 @@
       overflow: hidden;
       border: 1px solid rgba(255,255,255,0.12);
       background: #000;
-      box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+      box-shadow: inset 0 0 30px rgba(0,0,0,0.9);
       cursor: crosshair;
     }
     canvas {
@@ -209,12 +309,18 @@
       justify-content: space-between;
       align-items: center;
       padding: 10px 14px;
-      background: rgba(0,0,0,0.4);
+      background: rgba(0,0,0,0.45);
       border-radius: 10px;
-      border: 1px solid rgba(255,255,255,0.04);
-      font-size: 13px;
+      border: 1px solid rgba(255,255,255,0.05);
+      font-size: 12px;
       font-family: var(--font-mono);
       color: var(--text-muted);
+    }
+    .hud-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
     }
 
     /* Severity Legend */
@@ -227,47 +333,52 @@
       text-align: center;
     }
     .legend-item {
-      padding: 6px;
-      border-radius: 6px;
-      background: rgba(0,0,0,0.3);
-      border: 1px solid rgba(255,255,255,0.05);
+      padding: 7px 6px;
+      border-radius: 8px;
+      background: rgba(0,0,0,0.35);
+      border: 1px solid rgba(255,255,255,0.06);
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
     }
 
     /* Telemetry & Alert Sidebar */
     .sidebar {
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 14px;
     }
     .card {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
       border-radius: 16px;
-      padding: 18px;
-      backdrop-filter: blur(12px);
+      padding: 16px 18px;
+      backdrop-filter: blur(16px);
       box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
     }
     .card-title {
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 700;
       letter-spacing: 0.8px;
       text-transform: uppercase;
       color: var(--text-muted);
-      margin-bottom: 12px;
       display: flex;
       align-items: center;
       justify-content: space-between;
     }
 
-    /* Risk Banner */
+    /* Threat & Forecast Command Module */
     .risk-banner {
-      padding: 16px;
+      padding: 14px 16px;
       border-radius: 12px;
       text-align: center;
       transition: all 0.3s ease;
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 3px;
     }
     .risk-banner.GREEN {
       background: rgba(34, 197, 94, 0.12);
@@ -298,48 +409,99 @@
       50% { transform: scale(1.02); opacity: 0.9; }
     }
     .risk-level-text {
-      font-size: 26px;
+      font-size: 20px;
       font-weight: 800;
+      font-family: var(--font-mono);
       letter-spacing: 1px;
     }
     .risk-status-desc {
-      font-size: 12px;
+      font-size: 11px;
       font-family: var(--font-mono);
+      font-weight: 600;
       opacity: 0.9;
     }
 
-    /* Metric Gauges */
+    /* Anticipatory Forecast Box */
+    .forecast-box {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: rgba(0,0,0,0.35);
+      border-left: 4px solid var(--accent);
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .forecast-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2px;
+    }
+    .tag-dynamo {
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .forecast-text {
+      color: #f1f5f9;
+      font-weight: 700;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+    .forecast-sub {
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    /* Metric Rows */
     .metric-row {
-      margin-bottom: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
     }
     .metric-header {
       display: flex;
       justify-content: space-between;
-      font-size: 12px;
-      margin-bottom: 6px;
+      font-size: 11.5px;
       font-family: var(--font-mono);
     }
     .progress-bar-bg {
-      width: 100%;
-      height: 8px;
+      height: 6px;
       background: rgba(255,255,255,0.06);
-      border-radius: 4px;
+      border-radius: 9999px;
       overflow: hidden;
     }
     .progress-fill {
       height: 100%;
       width: 0%;
       transition: width 0.3s ease, background-color 0.3s ease;
-      border-radius: 4px;
+      border-radius: 9999px;
     }
 
     /* Zone Inspector */
+    .inspector-hint {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      background: rgba(255,255,255,0.02);
+      padding: 6px 8px;
+      border-radius: 6px;
+      border: 1px dashed rgba(255,255,255,0.08);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
     .inspector-box {
       font-family: var(--font-mono);
       font-size: 12px;
       background: rgba(0,0,0,0.35);
       padding: 12px;
-      border-radius: 8px;
+      border-radius: 10px;
       border: 1px solid rgba(255,255,255,0.05);
       display: flex;
       flex-direction: column;
@@ -348,20 +510,19 @@
     .inspector-item {
       display: flex;
       justify-content: space-between;
+      align-items: center;
     }
 
-    /* Explainability Alert Feed */
+    /* Alert Feed */
     .alert-feed {
-      max-height: 280px;
+      max-height: 240px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 8px;
       padding-right: 4px;
     }
-    .alert-feed::-webkit-scrollbar {
-      width: 4px;
-    }
+    .alert-feed::-webkit-scrollbar { width: 4px; }
     .alert-feed::-webkit-scrollbar-thumb {
       background: rgba(255,255,255,0.15);
       border-radius: 4px;
@@ -369,53 +530,86 @@
     .alert-item {
       background: rgba(0,0,0,0.35);
       border-radius: 8px;
-      padding: 10px 12px;
+      padding: 9px 12px;
       border-left: 4px solid var(--accent);
-      font-size: 12px;
+      font-size: 11.5px;
       transition: all 0.2s ease;
     }
     .alert-item.RED { border-left-color: var(--danger); background: rgba(239, 68, 68, 0.08); }
     .alert-item.ORANGE { border-left-color: var(--orange); background: rgba(249, 115, 22, 0.08); }
-    
     .alert-item-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 6px;
+      margin-bottom: 4px;
       font-family: var(--font-mono);
       font-weight: 700;
     }
     .alert-reason {
       color: #e2e8f0;
-      line-height: 1.4;
-      font-size: 11.5px;
-      margin-bottom: 6px;
+      line-height: 1.35;
+      font-size: 11px;
+      margin-bottom: 4px;
     }
     .alert-meta {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 10px;
+      font-size: 9.5px;
       font-family: var(--font-mono);
       color: var(--text-muted);
     }
-    .tag-dynamo {
-      color: var(--accent);
+
+    /* Architecture / Engineering Pillars Under Video */
+    .pillars-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-top: 4px;
+    }
+    @media (max-width: 900px) {
+      .pillars-grid { grid-template-columns: 1fr; }
+    }
+    .pillar-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 16px;
+      backdrop-filter: blur(12px);
+      display: flex;
+      gap: 12px;
+    }
+    .pillar-icon {
+      font-size: 24px;
+      line-height: 1;
+      padding: 10px;
+      border-radius: 10px;
       background: rgba(56, 189, 248, 0.1);
-      padding: 2px 6px;
-      border-radius: 4px;
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      height: fit-content;
+    }
+    .pillar-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+    .pillar-desc {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      line-height: 1.45;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <!-- Header -->
-    <div class="header">
+    <!-- Top Header Bar -->
+    <header class="header">
       <div class="brand">
         <div class="logo-icon">🛰️</div>
         <div>
           <h1 class="brand-title">SwarmSight Mission Control</h1>
-          <div class="brand-sub">AWS DYNAMODB & SNS ALERTING • FARNEBACK RISK FUSION</div>
+          <div class="brand-sub">PREDICTIVE AERIAL CROWD DYNAMICS • AWS DYNAMODB & SNS AUDIT</div>
         </div>
       </div>
       <div class="header-badges">
@@ -427,23 +621,51 @@
           <span id="statusText">STREAMING</span>
         </div>
       </div>
-    </div>
+    </header>
+
+    <!-- Interactive Explorer Hero Banner -->
+    <section class="hero-banner">
+      <div class="hero-info">
+        <span class="hero-icon">💡</span>
+        <div>
+          <div class="hero-title">Welcome, Evaluator! Explore Live Crowd Physics</div>
+          <div class="hero-desc">Select an aerial scenario below to observe <b>compression forecasting</b>, or click to <b>test with your own camera!</b></div>
+        </div>
+      </div>
+      <button id="btnLiveCamHero" class="btn-camera-cta" onclick="toggleLiveCamera()">
+        <span class="pulse-dot" style="background: #fff;"></span>
+        <span id="heroBtnText">🎥 Try With Your Live Camera</span>
+      </button>
+    </section>
 
     <!-- Main Grid -->
-    <div class="main-grid">
+    <main class="main-grid">
       <!-- Video Section -->
-      <div class="video-card">
+      <section class="video-card">
         <div class="feed-controls">
-          <div class="btn-group">
-            <button id="btnSafe" class="active" onclick="switchFeed('safe')" title="Real Drone Crowd Footage - Safe Dispersion">Drone Alpha (Safe)</button>
-            <button id="btnCompression" onclick="switchFeed('compression')" title="Real Drone Crowd Footage - High Coherence Surge">Drone Bravo (Surge)</button>
-            <button id="btnLiveCam" onclick="toggleLiveCamera()" style="border: 1px solid rgba(56, 189, 248, 0.4); background: rgba(56, 189, 248, 0.12); color: #38bdf8;" title="Stream from Laptop Webcam or Phone Camera">🎥 Live Camera</button>
-            <button id="btnSimSafe" onclick="switchFeed('sim_safe')" title="Revert to Synthetic Simulation - Packed Concert">Sim Alpha</button>
-            <button id="btnSimCompression" onclick="switchFeed('sim_compression')" title="Revert to Synthetic Simulation - Bottleneck Crush">Sim Bravo</button>
+          <div>
+            <div class="control-label">Preset Aerial Scenarios</div>
+            <div class="btn-group">
+              <button id="btnSafe" class="pill-btn active" onclick="switchFeed('safe')" title="Real Drone Crowd Footage - Safe Dispersion">
+                <span>🟢</span> Drone Alpha (Safe)
+              </button>
+              <button id="btnCompression" class="pill-btn danger-pill" onclick="switchFeed('compression')" title="Real Drone Footage - Bottleneck Compression Crush">
+                <span>🔴</span> Drone Bravo (Surge)
+              </button>
+              <button id="btnSimSafe" class="pill-btn" onclick="switchFeed('sim_safe')" title="Synthetic Simulation - Packed Concert">
+                Sim Concert
+              </button>
+              <button id="btnSimCompression" class="pill-btn" onclick="switchFeed('sim_compression')" title="Synthetic Simulation - Bottleneck Crush">
+                Sim Crush
+              </button>
+            </div>
           </div>
-          <div class="btn-group">
-            <button id="btnHeatmap" class="toggle-btn active" onclick="toggleOverlay('heatmap')">Risk Heatmap</button>
-            <button id="btnGridLines" class="toggle-btn active" onclick="toggleOverlay('grid')">Zone Grid</button>
+          <div>
+            <div class="control-label">Vision Overlays</div>
+            <div class="btn-group">
+              <button id="btnHeatmap" class="toggle-btn active" onclick="toggleOverlay('heatmap')">Heatmap</button>
+              <button id="btnGridLines" class="toggle-btn active" onclick="toggleOverlay('grid')">Zone Grid</button>
+            </div>
           </div>
         </div>
 
@@ -452,58 +674,64 @@
         </div>
 
         <div class="hud-bar">
-          <span>SOURCE: <b id="sourceIndicator" style="color: var(--safe);">Drone Alpha (Safe)</b> • PIPELINE: <b id="modelIndicator" style="color: #94a3b8;">Farneback Flow + High-Frequency Density</b></span>
-          <span id="fpsCounter">FPS: --</span>
+          <div class="hud-left">
+            <span>SOURCE: <b id="sourceIndicator" style="color: var(--safe);">Drone Alpha (Safe)</b></span>
+            <span>•</span>
+            <span>PIPELINE: <b id="modelIndicator" style="color: #94a3b8;">Farneback Flow + High-Frequency Density</b></span>
+          </div>
+          <div id="fpsCounter">FPS: --</div>
         </div>
 
         <!-- Fruin Severity Legend -->
         <div class="legend-bar">
           <div class="legend-item" style="color: var(--safe); border-color: rgba(34,197,94,0.3);">
-            <b>GREEN (LoS A/B)</b><br>Normal Dispersion
+            <b>GREEN (LoS A/B)</b>
+            <span>Normal Dispersion</span>
           </div>
           <div class="legend-item" style="color: var(--warn); border-color: rgba(234,179,8,0.3);">
-            <b>YELLOW (LoS C/D)</b><br>Dense / Active
+            <b>YELLOW (LoS C/D)</b>
+            <span>Dense / Active Flow</span>
           </div>
           <div class="legend-item" style="color: var(--orange); border-color: rgba(249,115,22,0.4);">
-            <b>ORANGE (LoS E)</b><br>Compression Precursor
+            <b>ORANGE (LoS E)</b>
+            <span>Precursor Compression</span>
           </div>
           <div class="legend-item" style="color: var(--danger); border-color: rgba(239,68,68,0.5);">
-            <b>RED (LoS F)</b><br>Crush Hazard
+            <b>RED (LoS F)</b>
+            <span>Critical Crush Hazard</span>
           </div>
         </div>
-      </div>
+      </section>
 
       <!-- Telemetry & Alert Sidebar -->
-      <div class="sidebar">
-        <!-- Live Alert Banner -->
+      <aside class="sidebar">
+        <!-- Unified Threat & Forecast Command Module -->
         <div class="card">
-          <div class="card-title">🚨 System Threat Level</div>
+          <div class="card-title">
+            <span>🚨 Threat Command & Forecast</span>
+            <span id="forecastBadge" class="tag-dynamo" style="color: #38bdf8; background: rgba(56,189,248,0.15);">TRAJECTORY STABLE</span>
+          </div>
+
           <div id="riskBanner" class="risk-banner GREEN">
             <div id="riskLevelText" class="risk-level-text">GREEN</div>
             <div id="riskStatusDesc" class="risk-status-desc">NORMAL: SAFE DENSITY & DISPERSION</div>
           </div>
-        </div>
 
-        <!-- Predictive Anticipatory Forecast Card -->
-        <div class="card" style="border: 1px solid rgba(56, 189, 248, 0.25); background: linear-gradient(180deg, rgba(18, 24, 38, 0.95), rgba(15, 23, 42, 0.85));">
-          <div class="card-title" style="display: flex; justify-content: space-between; align-items: center;">
-            <span>⏱️ Predictive Forecast</span>
-            <span id="forecastBadge" class="tag-dynamo" style="font-size: 10px; text-transform: uppercase;">TRAJECTORY STABLE</span>
+          <!-- Anticipatory Countdown Box -->
+          <div id="forecastBox" class="forecast-box">
+            <div class="forecast-header">
+              <span style="font-size: 10px; color: var(--text-muted); text-transform: uppercase;">⏱ Anticipatory Trajectory</span>
+              <span id="trendDirectionTag" style="font-size: 10px; color: var(--accent);">LINEAR TREND</span>
+            </div>
+            <div id="forecastSummaryText" class="forecast-text">All 48 spatial zones stable at normal flow rate</div>
+            <div class="forecast-sub">Calculated via in-memory rolling time-series regression (dD/dt)</div>
           </div>
-          <div id="forecastBox" style="font-family: var(--font-mono); font-size: 12px; padding: 10px 12px; border-radius: 8px; background: rgba(0,0,0,0.35); border-left: 4px solid var(--accent);">
-            <div id="forecastSummaryText" style="color: #f1f5f9; font-weight: 700; line-height: 1.4;">All 48 spatial zones stable at normal flow rate</div>
-            <div id="forecastSubText" style="font-size: 10.5px; color: var(--text-muted); margin-top: 5px;">Trend Extrapolation: In-memory rolling time-series</div>
-          </div>
-        </div>
 
-        <!-- Metric Gauges -->
-        <div class="card">
-          <div class="card-title">📊 Real-Time Fusion Metrics</div>
-          
+          <!-- Real-Time Metrics -->
           <div class="metric-row">
             <div class="metric-header">
               <span>Max Zone Density</span>
-              <span id="valDensity">0%</span>
+              <b id="valDensity">0%</b>
             </div>
             <div class="progress-bar-bg">
               <div id="barDensity" class="progress-fill" style="background: var(--safe);"></div>
@@ -513,7 +741,7 @@
           <div class="metric-row">
             <div class="metric-header">
               <span>Micro-Motion Stability</span>
-              <span id="valVariance">Normal</span>
+              <b id="valVariance">Normal</b>
             </div>
             <div class="progress-bar-bg">
               <div id="barVariance" class="progress-fill" style="background: var(--safe);"></div>
@@ -523,7 +751,7 @@
           <div class="metric-row">
             <div class="metric-header">
               <span>Peak Risk Score</span>
-              <span id="valScore">0.20</span>
+              <b id="valScore">0.20</b>
             </div>
             <div class="progress-bar-bg">
               <div id="barScore" class="progress-fill" style="background: var(--accent);"></div>
@@ -531,35 +759,67 @@
           </div>
         </div>
 
-        <!-- Zone Inspector -->
+        <!-- Interactive Zone Inspector (Hover Grid) -->
         <div class="card">
-          <div class="card-title">🎯 Zone Inspector (Hover Grid)</div>
+          <div class="card-title">
+            <span>🎯 Spatial Zone Inspector</span>
+            <span style="font-size: 10px; color: var(--accent); text-transform: none;">Hover Over Grid</span>
+          </div>
+          <div class="inspector-hint">
+            <span>💡</span>
+            <span>Hover your cursor across the video canvas to inspect any 1 of 48 zones.</span>
+          </div>
           <div class="inspector-box" id="inspectorBox">
-            <div class="inspector-item"><span>Selected Zone:</span><b id="inspZone">zone_2_3 (Center)</b></div>
+            <div class="inspector-item"><span>Selected Zone:</span><b id="inspZone" style="color: #fff;">zone_2_3 (Center)</b></div>
             <div class="inspector-item"><span>Density:</span><span id="inspDensity">--</span></div>
             <div class="inspector-item"><span>Flow Velocity:</span><span id="inspVelocity">--</span></div>
             <div class="inspector-item"><span>Micro-Motion Var:</span><span id="inspVariance">--</span></div>
-            <div class="inspector-item"><span>Coherence:</span><span id="inspCoherence">--</span></div>
-            <div class="inspector-item"><span>Forecast:</span><b id="inspForecast" style="color: var(--accent);">--</b></div>
-            <div class="inspector-item"><span>Rate (dD/dt):</span><span id="inspRate">--</span></div>
-            <div class="inspector-item"><span>Severity:</span><b id="inspLevel" style="color: var(--safe);">--</b></div>
+            <div class="inspector-item"><span>Directional Coherence:</span><span id="inspCoherence">--</span></div>
+            <div class="inspector-item"><span>Forecast Countdown:</span><b id="inspForecast" style="color: var(--accent);">--</b></div>
+            <div class="inspector-item"><span>Rate of Change (dD/dt):</span><span id="inspRate">--</span></div>
+            <div class="inspector-item"><span>Fruin Severity:</span><b id="inspLevel" style="color: var(--safe);">--</b></div>
           </div>
         </div>
 
         <!-- Explainability Alert Feed -->
         <div class="card">
           <div class="card-title">
-            <span>⚡ Live Alert Feed</span>
-            <span style="font-size: 11px; font-weight: normal; color: var(--accent);">Auto-Sync</span>
+            <span>⚡ DynamoDB & SNS Audit Feed</span>
+            <span style="font-size: 10px; font-weight: normal; color: var(--accent);">Auto-Sync</span>
           </div>
           <div class="alert-feed" id="alertFeed">
-            <div style="font-size: 11px; color: var(--text-muted); text-align: center; padding: 12px;">
-              No alerts active. All zones normal.
+            <div style="font-size: 11px; color: var(--text-muted); text-align: center; padding: 16px;">
+              🟢 No active alerts. Crowd dynamics normal.<br>Switch to Drone Bravo to trigger automated alerting.
             </div>
           </div>
         </div>
+      </aside>
+    </main>
+
+    <!-- Engineering & Architecture Pillars -->
+    <section class="pillars-grid">
+      <div class="pillar-card">
+        <div class="pillar-icon">🌊</div>
+        <div>
+          <div class="pillar-title">1. Micro-Motion Collapse Detection</div>
+          <div class="pillar-desc">Rather than relying only on late-stage bounding boxes, Farneback optical flow identifies random micro-motion variance collapse 5–15 minutes before lethal crush forces materialize.</div>
+        </div>
       </div>
-    </div>
+      <div class="pillar-card">
+        <div class="pillar-icon">⏱️</div>
+        <div>
+          <div class="pillar-title">2. Anticipatory Trend Forecasting</div>
+          <div class="pillar-desc">Rolling time-series regression computes spatial rate-of-change (dD/dt) per zone and projects exact seconds until critical density thresholds are crossed, empowering proactive crowd diversion.</div>
+        </div>
+      </div>
+      <div class="pillar-card">
+        <div class="pillar-icon">🔒</div>
+        <div>
+          <div class="pillar-title">3. Cloud Native Zero-Trust Pipeline</div>
+          <div class="pillar-desc">Alert records dispatch to Amazon DynamoDB and Amazon SNS via an EC2 instance profile adhering strictly to least-privilege IAM and IMDSv2 token enforcement.</div>
+        </div>
+      </div>
+    </section>
   </div>
 
   <script>
@@ -584,6 +844,7 @@
     const forecastBadge = document.getElementById('forecastBadge');
     const forecastBox = document.getElementById('forecastBox');
     const forecastSummaryText = document.getElementById('forecastSummaryText');
+    const trendDirectionTag = document.getElementById('trendDirectionTag');
     const inspForecast = document.getElementById('inspForecast');
     const inspRate = document.getElementById('inspRate');
 
@@ -601,8 +862,6 @@
     let hoveredRow = 2;
     let hoveredCol = 4;
     let currentTelemetry = null;
-    let knownAlerts = new Set();
-
     let frameCount = 0;
     let lastTime = performance.now();
 
@@ -633,7 +892,7 @@
       ws = new WebSocket(wsUrl);
       ws.onopen = () => {
         statusBadge.className = 'badge badge-live';
-        statusText.innerText = 'STREAMING TELEMETRY';
+        statusText.innerText = 'STREAMING';
       };
       ws.onmessage = (event) => {
         const data = JSON.parse(event.data);
@@ -664,6 +923,12 @@
               } else if (data.feed === 'compression' || data.feed === 'real_unsafe') {
                 srcEl.innerText = 'Drone Bravo (Surge)';
                 srcEl.style.color = 'var(--orange)';
+              } else if (data.feed === 'sim_compression') {
+                srcEl.innerText = 'Sim Bravo (Crush)';
+                srcEl.style.color = 'var(--orange)';
+              } else if (data.feed === 'sim_safe') {
+                srcEl.innerText = 'Sim Alpha (Concert)';
+                srcEl.style.color = 'var(--safe)';
               } else {
                 srcEl.innerText = 'Drone Alpha (Safe)';
                 srcEl.style.color = 'var(--safe)';
@@ -723,13 +988,13 @@
 
         if (showGrid) {
           ctx.strokeStyle = (z.row === hoveredRow && z.col === hoveredCol)
-            ? 'rgba(56, 189, 248, 0.9)'
+            ? 'rgba(56, 189, 248, 0.95)'
             : 'rgba(255, 255, 255, 0.12)';
           ctx.lineWidth = (z.row === hoveredRow && z.col === hoveredCol) ? 2 : 1;
           ctx.strokeRect(x, y, cellW, cellH);
         }
 
-        // Predictive dashed outline on zones nearing critical compression
+        // Anticipatory dashed orange boundary for imminent critical zones
         if (z.forecast_seconds !== null && z.forecast_seconds <= 120 && z.forecast_seconds > 0) {
           ctx.save();
           ctx.strokeStyle = '#f97316';
@@ -752,7 +1017,7 @@
       barDensity.style.backgroundColor = densityPct > 70 ? 'var(--danger)' : (densityPct > 45 ? 'var(--warn)' : 'var(--safe)');
 
       const varPct = Math.min(100, Math.round(t.min_variance * 80));
-      valVariance.innerText = t.min_variance < 0.25 ? '⚠️ COLLAPSE (Precursor)' : 'Normal Jitter';
+      valVariance.innerText = t.min_variance < 0.25 ? '⚠️ COLLAPSE' : 'Normal Jitter';
       barVariance.style.width = `${varPct}%`;
       barVariance.style.backgroundColor = t.min_variance < 0.25 ? 'var(--danger)' : 'var(--safe)';
 
@@ -767,14 +1032,20 @@
           forecastBox.style.borderLeftColor = 'var(--danger)';
           forecastBadge.style.color = 'var(--danger)';
           forecastBadge.style.background = 'rgba(239, 68, 68, 0.15)';
+          trendDirectionTag.innerText = `COUNTDOWN: ~${t.earliest_forecast_seconds}s`;
+          trendDirectionTag.style.color = 'var(--danger)';
         } else if (t.forecast_badge === 'ELEVATED RISK') {
           forecastBox.style.borderLeftColor = 'var(--orange)';
           forecastBadge.style.color = 'var(--orange)';
           forecastBadge.style.background = 'rgba(249, 115, 22, 0.15)';
+          trendDirectionTag.innerText = 'CONVERGENCE DETECTED';
+          trendDirectionTag.style.color = 'var(--orange)';
         } else {
           forecastBox.style.borderLeftColor = 'var(--accent)';
           forecastBadge.style.color = 'var(--accent)';
           forecastBadge.style.background = 'rgba(56, 189, 248, 0.15)';
+          trendDirectionTag.innerText = 'STABLE DISPERSION';
+          trendDirectionTag.style.color = 'var(--accent)';
         }
       }
 
@@ -807,7 +1078,7 @@
 
     function updateAlertFeed(alerts) {
       if (!alerts || alerts.length === 0) {
-        alertFeed.innerHTML = '<div style="font-size: 11px; color: var(--text-muted); text-align: center; padding: 12px;">No alerts active. All zones normal.</div>';
+        alertFeed.innerHTML = '<div style="font-size: 11px; color: var(--text-muted); text-align: center; padding: 14px;">🟢 No active alerts. All 48 zones normal.</div>';
         return;
       }
 
@@ -822,7 +1093,7 @@
             <div class="alert-reason">${a.reason}</div>
             <div class="alert-meta">
               <span>Density: ${Math.round(a.density * 100)}% | Var: ${a.variance}</span>
-              <span class="tag-dynamo">⚡ DynamoDB + SNS</span>
+              <span class="tag-dynamo" style="color: var(--accent); background: rgba(56,189,248,0.1);">⚡ DynamoDB + SNS</span>
             </div>
           </div>
         `;
@@ -871,21 +1142,17 @@
         await videoTrack.play();
         isLiveCamera = true;
 
-        const btn = document.getElementById('btnLiveCam');
-        if (btn) {
-          btn.classList.add('active');
-          btn.style.background = 'rgba(239, 68, 68, 0.25)';
-          btn.style.color = 'var(--danger)';
-          btn.style.borderColor = 'rgba(239, 68, 68, 0.6)';
-          btn.innerText = '⏹ Stop Camera';
-        }
+        const btnHero = document.getElementById('btnLiveCamHero');
+        const heroText = document.getElementById('heroBtnText');
+        if (btnHero) btnHero.classList.add('active');
+        if (heroText) heroText.innerText = '⏹ Stop Camera & Revert';
 
         ['btnSafe', 'btnCompression', 'btnSimSafe', 'btnSimCompression'].forEach(id => {
           const el = document.getElementById(id);
           if (el) el.classList.remove('active');
         });
 
-        // Inform backend to listen for live feed
+        // Inform backend
         if (ws && ws.readyState === WebSocket.OPEN) {
           ws.send(JSON.stringify({ type: 'select_feed', feed: 'live' }));
         }
@@ -915,14 +1182,10 @@
         localStream.getTracks().forEach(t => t.stop());
         localStream = null;
       }
-      const btn = document.getElementById('btnLiveCam');
-      if (btn) {
-        btn.classList.remove('active');
-        btn.style.background = 'rgba(56, 189, 248, 0.12)';
-        btn.style.color = '#38bdf8';
-        btn.style.borderColor = 'rgba(56, 189, 248, 0.4)';
-        btn.innerText = '🎥 Live Camera';
-      }
+      const btnHero = document.getElementById('btnLiveCamHero');
+      const heroText = document.getElementById('heroBtnText');
+      if (btnHero) btnHero.classList.remove('active');
+      if (heroText) heroText.innerText = '🎥 Try With Your Live Camera';
     }
 
     function switchFeed(feed) {
