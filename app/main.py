@@ -18,8 +18,14 @@ if os.path.exists(STATIC_DIR):
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 CLIPS = {
-    "safe": os.path.join(CLIPS_DIR, "safe_crowd.mp4"),
-    "compression": os.path.join(CLIPS_DIR, "compression_crowd.mp4")
+    # Real crowd videos (Primary active demo)
+    "safe": os.path.join(CLIPS_DIR, "SAFE.mp4"),
+    "compression": os.path.join(CLIPS_DIR, "UNSAFE.mp4"),
+    "real_safe": os.path.join(CLIPS_DIR, "SAFE.mp4"),
+    "real_unsafe": os.path.join(CLIPS_DIR, "UNSAFE.mp4"),
+    # Original simulation videos (Revert / Fallback options)
+    "sim_safe": os.path.join(CLIPS_DIR, "safe_crowd.mp4"),
+    "sim_compression": os.path.join(CLIPS_DIR, "compression_crowd.mp4")
 }
 
 current_clip = "safe"
@@ -67,7 +73,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 continue
 
             # Run Crowd Analytics (Density + Farneback Flow + Risk Fusion)
-            telemetry = engine.process_frame(frame)
+            telemetry = engine.process_frame(frame, feed=current_clip)
 
             # Check Alert Conditions (DynamoDB + SNS on Orange/Red)
             new_alerts = alert_manager.check_and_alert(telemetry, current_clip)

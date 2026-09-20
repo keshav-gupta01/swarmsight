@@ -24,6 +24,7 @@ ENV/
 *.zip
 *.mp4
 *.avi
+scratch/
 
 # OS and Editor
 .DS_Store

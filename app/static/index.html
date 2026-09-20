@@ -435,8 +435,10 @@
       <div class="video-card">
         <div class="feed-controls">
           <div class="btn-group">
-            <button id="btnSafe" class="active" onclick="switchFeed('safe')">Drone Alpha (Concert Dispersion)</button>
-            <button id="btnCompression" onclick="switchFeed('compression')">Drone Bravo (Bottleneck Crush)</button>
+            <button id="btnSafe" class="active" onclick="switchFeed('safe')" title="Real Drone Crowd Footage - Safe Dispersion">Drone Alpha (Real - Safe)</button>
+            <button id="btnCompression" onclick="switchFeed('compression')" title="Real Drone Crowd Footage - High Coherence Surge">Drone Bravo (Real - Surge)</button>
+            <button id="btnSimSafe" onclick="switchFeed('sim_safe')" title="Revert to Synthetic Simulation - Packed Concert">Sim Alpha (Concert)</button>
+            <button id="btnSimCompression" onclick="switchFeed('sim_compression')" title="Revert to Synthetic Simulation - Bottleneck Crush">Sim Bravo (Crush)</button>
           </div>
           <div class="btn-group">
             <button id="btnHeatmap" class="toggle-btn active" onclick="toggleOverlay('heatmap')">Risk Heatmap</button>
@@ -615,6 +617,10 @@
         const data = JSON.parse(event.data);
         const img = new Image();
         img.onload = () => {
+          if (canvas.width !== img.width || canvas.height !== img.height) {
+            canvas.width = img.width;
+            canvas.height = img.height;
+          }
           ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
           
           if (data.telemetry) {
@@ -759,8 +765,14 @@
       fetch(`/api/select_feed/${feed}`)
         .then(r => r.json())
         .then(() => {
-          document.getElementById('btnSafe').classList.toggle('active', feed === 'safe');
-          document.getElementById('btnCompression').classList.toggle('active', feed === 'compression');
+          ['btnSafe', 'btnCompression', 'btnSimSafe', 'btnSimCompression'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.classList.remove('active');
+          });
+          if (feed === 'safe' || feed === 'real_safe') document.getElementById('btnSafe')?.classList.add('active');
+          if (feed === 'compression' || feed === 'real_unsafe') document.getElementById('btnCompression')?.classList.add('active');
+          if (feed === 'sim_safe') document.getElementById('btnSimSafe')?.classList.add('active');
+          if (feed === 'sim_compression') document.getElementById('btnSimCompression')?.classList.add('active');
         });
     }
 
