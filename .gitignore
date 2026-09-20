@@ -25,6 +25,7 @@ ENV/
 *.mp4
 *.avi
 scratch/
+docs/
 
 # OS and Editor
 .DS_Store
