@@ -1,0 +1,28 @@
+# SwarmSight FastAPI App — Pinned Requirements
+# Source: /opt/swarmsight/venv/bin/pip freeze on production EC2 (t3.large, Ubuntu 22.04 LTS)
+annotated-types==0.8.0
+anyio==4.15.1
+boto3==1.43.98
+botocore==1.43.98
+click==8.5.0
+fastapi==0.141.1
+h11==0.16.0
+httptools==0.8.0
+idna==3.20
+jmespath==1.1.0
+numpy==2.4.6
+opencv-python-headless==5.0.0.93
+pydantic==2.13.5
+pydantic_core==2.46.5
+python-dateutil==2.9.0.post0
+python-dotenv==1.2.3
+PyYAML==6.0.3
+s3transfer==0.19.2
+six==1.17.0
+starlette==1.6.0
+typing_extensions==4.16.0
+urllib3==2.8.0
+uvicorn==0.53.0
+uvloop==0.22.1
+watchfiles==1.2.0
+websockets==17.1

@@ -1,0 +1,20 @@
+version: "3.9"
+
+services:
+  swarmsight:
+    image: swarmsight:latest
+    container_name: swarmsight
+    restart: always
+    ports:
+      - "127.0.0.1:8001:8000"   # Bound to loopback only — Nginx proxies externally
+    volumes:
+      - /opt/swarmsight/data/clips:/opt/swarmsight/data/clips:ro
+    environment:
+      - AWS_REGION=ap-south-1
+      - SWARMSIGHT_TABLE=swarmsight_alerts
+      - SWARMSIGHT_SNS_ARN=arn:aws:sns:ap-south-1:879268673611:swarmsight-alerts
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"

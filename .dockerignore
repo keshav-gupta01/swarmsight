@@ -1,0 +1,21 @@
+# .dockerignore — Excludes from Docker build context
+.git
+.gitignore
+.agents
+docs/
+infra/
+*.mp4
+*.tar.gz
+scratch/
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.DS_Store
+node_modules/
+*.md
+nginx.conf
+setup_docker.sh
+docker-compose.yml
+swarmsight-*.md
+drone-crowd-*.md
