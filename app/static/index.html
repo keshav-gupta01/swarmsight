@@ -3,14 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <title>SwarmSight — Aerial Drone Crowd Safety & Predictive Mission Control</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#070a12">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg: #070a12;
-      --bg-gradient: radial-gradient(circle at 50% 0%, #131d33 0%, #070a12 75%);
-      --card-bg: rgba(15, 23, 42, 0.75);
+      --bg-gradient: radial-gradient(circle at 50% 0%, #131d33 0%, #070a12 85%);
+      --card-bg: rgba(15, 23, 42, 0.78);
       --card-border: rgba(255, 255, 255, 0.08);
+      --card-border-glow: rgba(56, 189, 248, 0.2);
       --text: #f8fafc;
       --text-muted: #94a3b8;
       --accent: #38bdf8;
@@ -21,10 +25,15 @@
       --orange: #f97316;
       --danger: #ef4444;
       --danger-glow: rgba(239, 68, 68, 0.35);
-      --font-main: 'Outfit', sans-serif;
+      --font-main: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
       --font-mono: 'JetBrains Mono', monospace;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
     body {
       background: var(--bg-gradient);
       background-color: var(--bg);
@@ -34,14 +43,15 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 16px 20px 40px;
+      padding: 16px 16px 48px;
+      overflow-x: hidden;
     }
     .container {
       width: 100%;
       max-width: 1320px;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 14px;
     }
 
     /* Top Navigation Header */
@@ -52,62 +62,74 @@
       background: var(--card-bg);
       border: 1px solid var(--card-border);
       border-radius: 16px;
-      padding: 14px 22px;
+      padding: 12px 18px;
       backdrop-filter: blur(16px);
-      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      -webkit-backdrop-filter: blur(16px);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.35);
+      gap: 12px;
     }
     .brand {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 12px;
+      min-width: 0;
     }
     .logo-icon {
-      width: 44px;
-      height: 44px;
+      width: 42px;
+      height: 42px;
+      min-width: 42px;
       border-radius: 12px;
       background: linear-gradient(135deg, #0284c7, #38bdf8);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 24px;
-      box-shadow: 0 0 25px var(--accent-glow);
+      font-size: 22px;
+      box-shadow: 0 0 20px var(--accent-glow);
     }
     .brand-title {
-      font-size: 22px;
+      font-size: 20px;
       font-weight: 800;
       letter-spacing: -0.5px;
-      background: linear-gradient(to right, #ffffff, #94a3b8);
+      background: linear-gradient(to right, #ffffff, #cbd5e1);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .brand-sub {
-      font-size: 11.5px;
+      font-size: 11px;
       color: var(--text-muted);
       font-family: var(--font-mono);
       margin-top: 2px;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .header-badges {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
+      flex-shrink: 0;
     }
     .badge {
       display: flex;
       align-items: center;
-      gap: 8px;
-      padding: 6px 14px;
+      gap: 7px;
+      padding: 6px 12px;
       border-radius: 9999px;
-      font-size: 11.5px;
+      font-size: 11px;
       font-weight: 700;
       letter-spacing: 0.5px;
       text-transform: uppercase;
       font-family: var(--font-mono);
       transition: all 0.3s ease;
+      white-space: nowrap;
     }
     .badge-aws {
       background: rgba(56, 189, 248, 0.12);
-      border: 1px solid rgba(56, 189, 248, 0.3);
+      border: 1px solid rgba(56, 189, 248, 0.28);
       color: var(--accent);
     }
     .badge-live {
@@ -133,65 +155,74 @@
       50% { opacity: 0.35; transform: scale(0.85); }
     }
 
-    /* Interactive Explorer Banner (Visitor Onboarding) */
+    /* Interactive Explorer Hero Banner */
     .hero-banner {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: linear-gradient(90deg, rgba(2, 132, 199, 0.18) 0%, rgba(56, 189, 248, 0.08) 50%, rgba(15, 23, 42, 0.8) 100%);
-      border: 1px solid rgba(56, 189, 248, 0.3);
+      background: linear-gradient(135deg, rgba(2, 132, 199, 0.22) 0%, rgba(56, 189, 248, 0.10) 45%, rgba(15, 23, 42, 0.85) 100%);
+      border: 1px solid rgba(56, 189, 248, 0.35);
       border-radius: 14px;
-      padding: 14px 20px;
-      backdrop-filter: blur(12px);
-      box-shadow: 0 0 30px rgba(56, 189, 248, 0.1);
+      padding: 14px 18px;
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      box-shadow: 0 0 25px rgba(56, 189, 248, 0.12);
+      gap: 14px;
     }
     .hero-info {
       display: flex;
       align-items: center;
       gap: 12px;
+      min-width: 0;
     }
     .hero-icon {
-      font-size: 22px;
+      font-size: 24px;
+      line-height: 1;
+      flex-shrink: 0;
     }
-    .hero-text-title {
+    .hero-title {
       font-size: 14px;
       font-weight: 700;
       color: #fff;
     }
-    .hero-text-desc {
+    .hero-desc {
       font-size: 12px;
       color: var(--text-muted);
-      margin-top: 2px;
+      margin-top: 3px;
+      line-height: 1.4;
     }
-    .hero-text-desc b {
+    .hero-desc b {
       color: #38bdf8;
     }
     .btn-camera-cta {
-      display: flex;
+      display: inline-flex;
       align-items: center;
+      justify-content: center;
       gap: 8px;
       background: linear-gradient(135deg, #0284c7, #0369a1);
       border: 1px solid #38bdf8;
       color: #ffffff;
-      padding: 9px 18px;
+      padding: 10px 18px;
       border-radius: 10px;
       font-size: 13px;
       font-weight: 700;
       cursor: pointer;
       font-family: var(--font-main);
-      box-shadow: 0 0 20px rgba(2, 132, 199, 0.4);
+      box-shadow: 0 0 22px rgba(2, 132, 199, 0.45);
       transition: all 0.25s ease;
       white-space: nowrap;
+      touch-action: manipulation;
+      flex-shrink: 0;
     }
     .btn-camera-cta:hover {
       background: linear-gradient(135deg, #0369a1, #0284c7);
-      box-shadow: 0 0 28px rgba(56, 189, 248, 0.6);
+      box-shadow: 0 0 28px rgba(56, 189, 248, 0.65);
       transform: translateY(-1px);
     }
     .btn-camera-cta.active {
       background: linear-gradient(135deg, #dc2626, #b91c1c);
       border-color: #ef4444;
-      box-shadow: 0 0 25px rgba(239, 68, 68, 0.5);
+      box-shadow: 0 0 25px rgba(239, 68, 68, 0.55);
       animation: alertGlow 1.2s infinite alternate;
     }
     @keyframes alertGlow {
@@ -202,11 +233,8 @@
     /* Main Grid Layout */
     .main-grid {
       display: grid;
-      grid-template-columns: 1fr 410px;
-      gap: 16px;
-    }
-    @media (max-width: 1100px) {
-      .main-grid { grid-template-columns: 1fr; }
+      grid-template-columns: 1fr 390px;
+      gap: 14px;
     }
 
     /* Video Player Card */
@@ -214,51 +242,59 @@
       background: var(--card-bg);
       border: 1px solid var(--card-border);
       border-radius: 16px;
-      padding: 18px;
+      padding: 16px;
       backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 12px;
       box-shadow: 0 20px 40px rgba(0,0,0,0.4);
     }
     .feed-controls {
       display: flex;
       justify-content: space-between;
-      align-items: center;
+      align-items: flex-end;
       flex-wrap: wrap;
       gap: 10px;
     }
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
     .control-label {
-      font-size: 11px;
+      font-size: 10.5px;
       font-family: var(--font-mono);
       color: var(--text-muted);
       text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 4px;
+      letter-spacing: 0.6px;
     }
     .btn-group {
       display: flex;
       align-items: center;
       gap: 6px;
-      background: rgba(0,0,0,0.35);
+      background: rgba(0,0,0,0.4);
       padding: 4px;
       border-radius: 10px;
       border: 1px solid rgba(255,255,255,0.06);
+      flex-wrap: wrap;
     }
     button.pill-btn {
       background: transparent;
       border: none;
       color: var(--text-muted);
-      padding: 7px 14px;
+      padding: 7px 12px;
       border-radius: 8px;
-      font-size: 12.5px;
+      font-size: 12px;
       font-weight: 600;
       cursor: pointer;
       font-family: var(--font-main);
       transition: all 0.2s ease;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
+      touch-action: manipulation;
+      white-space: nowrap;
     }
     button.pill-btn:hover { color: #fff; background: rgba(255,255,255,0.06); }
     button.pill-btn.active {
@@ -268,22 +304,23 @@
     }
     button.pill-btn.danger-pill.active {
       background: #dc2626;
-      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.45);
     }
     .toggle-btn {
       background: rgba(255,255,255,0.04);
       border: 1px solid rgba(255,255,255,0.08);
       color: var(--text-muted);
-      padding: 6px 12px;
+      padding: 6px 11px;
       border-radius: 8px;
-      font-size: 11.5px;
+      font-size: 11px;
       font-family: var(--font-mono);
       font-weight: 600;
       cursor: pointer;
       transition: all 0.2s ease;
+      touch-action: manipulation;
     }
     .toggle-btn.active {
-      background: rgba(56, 189, 248, 0.15);
+      background: rgba(56, 189, 248, 0.16);
       border-color: var(--accent);
       color: var(--accent);
     }
@@ -292,15 +329,21 @@
       position: relative;
       border-radius: 12px;
       overflow: hidden;
-      border: 1px solid rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.14);
       background: #000;
-      box-shadow: inset 0 0 30px rgba(0,0,0,0.9);
+      box-shadow: inset 0 0 35px rgba(0,0,0,0.95);
       cursor: crosshair;
+      touch-action: none;
+      aspect-ratio: 4 / 3;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     canvas {
       display: block;
       width: 100%;
-      height: auto;
+      height: 100%;
+      object-fit: contain;
     }
 
     /* HUD Bar under video */
@@ -308,38 +351,53 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 10px 14px;
+      padding: 8px 12px;
       background: rgba(0,0,0,0.45);
       border-radius: 10px;
       border: 1px solid rgba(255,255,255,0.05);
-      font-size: 12px;
+      font-size: 11.5px;
       font-family: var(--font-mono);
       color: var(--text-muted);
+      gap: 8px;
     }
     .hud-left {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 8px;
       flex-wrap: wrap;
+      min-width: 0;
+    }
+    .hud-left span {
+      white-space: nowrap;
     }
 
     /* Severity Legend */
     .legend-bar {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 8px;
-      font-size: 11px;
+      gap: 6px;
+      font-size: 10.5px;
       font-family: var(--font-mono);
       text-align: center;
     }
     .legend-item {
-      padding: 7px 6px;
+      padding: 6px 4px;
       border-radius: 8px;
       background: rgba(0,0,0,0.35);
       border: 1px solid rgba(255,255,255,0.06);
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      gap: 1px;
+    }
+    .legend-item b {
+      font-size: 10px;
+    }
+    .legend-item span {
+      font-size: 9.5px;
+      opacity: 0.85;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     /* Telemetry & Alert Sidebar */
@@ -352,15 +410,16 @@
       background: var(--card-bg);
       border: 1px solid var(--card-border);
       border-radius: 16px;
-      padding: 16px 18px;
+      padding: 15px 16px;
       backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
       box-shadow: 0 10px 25px rgba(0,0,0,0.3);
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
     }
     .card-title {
-      font-size: 12px;
+      font-size: 11.5px;
       font-weight: 700;
       letter-spacing: 0.8px;
       text-transform: uppercase;
@@ -372,13 +431,13 @@
 
     /* Threat & Forecast Command Module */
     .risk-banner {
-      padding: 14px 16px;
+      padding: 12px 14px;
       border-radius: 12px;
       text-align: center;
       transition: all 0.3s ease;
       display: flex;
       flex-direction: column;
-      gap: 3px;
+      gap: 2px;
     }
     .risk-banner.GREEN {
       background: rgba(34, 197, 94, 0.12);
@@ -394,19 +453,19 @@
       background: rgba(249, 115, 22, 0.18);
       border: 2px solid var(--orange);
       color: var(--orange);
-      box-shadow: 0 0 25px rgba(249, 115, 22, 0.3);
+      box-shadow: 0 0 25px rgba(249, 115, 22, 0.35);
       animation: alertPulse 1.2s infinite;
     }
     .risk-banner.RED {
       background: rgba(239, 68, 68, 0.25);
       border: 2px solid var(--danger);
       color: var(--danger);
-      box-shadow: 0 0 35px rgba(239, 68, 68, 0.5);
+      box-shadow: 0 0 35px rgba(239, 68, 68, 0.55);
       animation: alertPulse 0.8s infinite;
     }
     @keyframes alertPulse {
       0%, 100% { transform: scale(1); opacity: 1; }
-      50% { transform: scale(1.02); opacity: 0.9; }
+      50% { transform: scale(1.02); opacity: 0.92; }
     }
     .risk-level-text {
       font-size: 20px;
@@ -415,7 +474,7 @@
       letter-spacing: 1px;
     }
     .risk-status-desc {
-      font-size: 11px;
+      font-size: 10.5px;
       font-family: var(--font-mono);
       font-weight: 600;
       opacity: 0.9;
@@ -424,7 +483,7 @@
     /* Anticipatory Forecast Box */
     .forecast-box {
       font-family: var(--font-mono);
-      font-size: 12px;
+      font-size: 11.5px;
       padding: 10px 12px;
       border-radius: 10px;
       background: rgba(0,0,0,0.35);
@@ -440,8 +499,8 @@
       margin-bottom: 2px;
     }
     .tag-dynamo {
-      font-size: 10px;
-      padding: 2px 8px;
+      font-size: 9.5px;
+      padding: 2px 7px;
       border-radius: 4px;
       font-weight: 700;
       text-transform: uppercase;
@@ -450,11 +509,11 @@
     .forecast-text {
       color: #f1f5f9;
       font-weight: 700;
-      font-size: 12px;
+      font-size: 11.5px;
       line-height: 1.4;
     }
     .forecast-sub {
-      font-size: 10px;
+      font-size: 9.5px;
       color: var(--text-muted);
     }
 
@@ -462,12 +521,12 @@
     .metric-row {
       display: flex;
       flex-direction: column;
-      gap: 5px;
+      gap: 4px;
     }
     .metric-header {
       display: flex;
       justify-content: space-between;
-      font-size: 11.5px;
+      font-size: 11px;
       font-family: var(--font-mono);
     }
     .progress-bar-bg {
@@ -485,7 +544,7 @@
 
     /* Zone Inspector */
     .inspector-hint {
-      font-size: 11px;
+      font-size: 10.5px;
       color: var(--text-muted);
       font-family: var(--font-mono);
       background: rgba(255,255,255,0.02);
@@ -496,31 +555,40 @@
       align-items: center;
       gap: 6px;
     }
-    .inspector-box {
+    .inspector-grid-compact {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
       font-family: var(--font-mono);
-      font-size: 12px;
+      font-size: 11px;
+    }
+    .inspector-tile {
       background: rgba(0,0,0,0.35);
-      padding: 12px;
-      border-radius: 10px;
+      padding: 8px 10px;
+      border-radius: 8px;
       border: 1px solid rgba(255,255,255,0.05);
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 2px;
     }
-    .inspector-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    .inspector-tile-label {
+      font-size: 9.5px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+    .inspector-tile-val {
+      font-weight: 700;
+      color: #fff;
     }
 
     /* Alert Feed */
     .alert-feed {
-      max-height: 240px;
+      max-height: 220px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
       gap: 8px;
-      padding-right: 4px;
+      padding-right: 2px;
     }
     .alert-feed::-webkit-scrollbar { width: 4px; }
     .alert-feed::-webkit-scrollbar-thumb {
@@ -530,9 +598,9 @@
     .alert-item {
       background: rgba(0,0,0,0.35);
       border-radius: 8px;
-      padding: 9px 12px;
+      padding: 8px 10px;
       border-left: 4px solid var(--accent);
-      font-size: 11.5px;
+      font-size: 11px;
       transition: all 0.2s ease;
     }
     .alert-item.RED { border-left-color: var(--danger); background: rgba(239, 68, 68, 0.08); }
@@ -541,21 +609,21 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 4px;
+      margin-bottom: 3px;
       font-family: var(--font-mono);
       font-weight: 700;
     }
     .alert-reason {
       color: #e2e8f0;
       line-height: 1.35;
-      font-size: 11px;
-      margin-bottom: 4px;
+      font-size: 10.5px;
+      margin-bottom: 3px;
     }
     .alert-meta {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 9.5px;
+      font-size: 9px;
       font-family: var(--font-mono);
       color: var(--text-muted);
     }
@@ -564,46 +632,153 @@
     .pillars-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 14px;
+      gap: 12px;
       margin-top: 4px;
-    }
-    @media (max-width: 900px) {
-      .pillars-grid { grid-template-columns: 1fr; }
     }
     .pillar-card {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
       border-radius: 14px;
-      padding: 16px;
+      padding: 14px 16px;
       backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       display: flex;
       gap: 12px;
     }
     .pillar-icon {
-      font-size: 24px;
+      font-size: 22px;
       line-height: 1;
-      padding: 10px;
+      padding: 8px;
       border-radius: 10px;
       background: rgba(56, 189, 248, 0.1);
       border: 1px solid rgba(56, 189, 248, 0.2);
       height: fit-content;
+      flex-shrink: 0;
     }
     .pillar-title {
-      font-size: 13px;
+      font-size: 12.5px;
       font-weight: 700;
       color: #fff;
-      margin-bottom: 4px;
+      margin-bottom: 3px;
     }
     .pillar-desc {
-      font-size: 11.5px;
+      font-size: 11px;
       color: var(--text-muted);
       line-height: 1.45;
+    }
+
+    /* =========================================================================
+       RESPONSIVE & MOBILE-FIRST BREAKPOINTS
+       ========================================================================= */
+    @media (max-width: 1024px) {
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+      .pillars-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 10px 10px 40px;
+      }
+      .container {
+        gap: 10px;
+      }
+      .header {
+        padding: 10px 14px;
+        border-radius: 14px;
+      }
+      .brand-title {
+        font-size: 17px;
+      }
+      .brand-sub {
+        display: none;
+      }
+      .badge-aws {
+        display: none; /* Keep header clean on small screens */
+      }
+      .hero-banner {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 12px 14px;
+        gap: 12px;
+      }
+      .btn-camera-cta {
+        width: 100%;
+        padding: 11px;
+        font-size: 13.5px;
+      }
+      .feed-controls {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+      }
+      .control-group {
+        width: 100%;
+      }
+      .btn-group {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 5px;
+      }
+      button.pill-btn {
+        justify-content: center;
+        padding: 8px 6px;
+        font-size: 11.5px;
+      }
+      .toggle-btn {
+        text-align: center;
+        padding: 8px;
+      }
+      .video-card {
+        padding: 12px;
+        border-radius: 14px;
+      }
+      .hud-bar {
+        font-size: 10.5px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+      }
+      .hud-left {
+        width: 100%;
+        justify-content: space-between;
+      }
+      .legend-bar {
+        grid-template-columns: 1fr 1fr;
+        gap: 5px;
+      }
+      .card {
+        padding: 12px 14px;
+        border-radius: 14px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .logo-icon {
+        width: 36px;
+        height: 36px;
+        min-width: 36px;
+        font-size: 18px;
+      }
+      .brand-title {
+        font-size: 15.5px;
+      }
+      .risk-level-text {
+        font-size: 18px;
+      }
+      .inspector-grid-compact {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <!-- Top Header Bar -->
+    <!-- Top Navigation Header -->
     <header class="header">
       <div class="brand">
         <div class="logo-icon">🛰️</div>
@@ -614,7 +789,7 @@
       </div>
       <div class="header-badges">
         <div class="badge badge-aws">
-          <span>⚡ DynamoDB & SNS Active</span>
+          <span>⚡ DynamoDB & SNS</span>
         </div>
         <div id="statusBadge" class="badge badge-live">
           <div class="pulse-dot"></div>
@@ -628,8 +803,8 @@
       <div class="hero-info">
         <span class="hero-icon">💡</span>
         <div>
-          <div class="hero-title">Welcome, Evaluator! Explore Live Crowd Physics</div>
-          <div class="hero-desc">Select an aerial scenario below to observe <b>compression forecasting</b>, or click to <b>test with your own camera!</b></div>
+          <div class="hero-title">Live Crowd Dynamics & Predictive Mission Control</div>
+          <div class="hero-desc">Tap a scenario below to observe <b>compression forecasting</b>, or test live with your phone's camera!</div>
         </div>
       </div>
       <button id="btnLiveCamHero" class="btn-camera-cta" onclick="toggleLiveCamera()">
@@ -643,26 +818,26 @@
       <!-- Video Section -->
       <section class="video-card">
         <div class="feed-controls">
-          <div>
+          <div class="control-group" style="flex: 1;">
             <div class="control-label">Preset Aerial Scenarios</div>
             <div class="btn-group">
               <button id="btnSafe" class="pill-btn active" onclick="switchFeed('safe')" title="Real Drone Crowd Footage - Safe Dispersion">
                 <span>🟢</span> Drone Alpha (Safe)
               </button>
-              <button id="btnCompression" class="pill-btn danger-pill" onclick="switchFeed('compression')" title="Real Drone Footage - Bottleneck Compression Crush">
+              <button id="btnCompression" class="pill-btn danger-pill" onclick="switchFeed('compression')" title="Real Drone Footage - Bottleneck Compression Surge">
                 <span>🔴</span> Drone Bravo (Surge)
               </button>
-              <button id="btnSimSafe" class="pill-btn" onclick="switchFeed('sim_safe')" title="Synthetic Simulation - Packed Concert">
-                Sim Concert
+              <button id="btnSimSafe" class="pill-btn" onclick="switchFeed('sim_safe')" title="Synthetic Simulation - Concert Flow">
+                <span>⚡</span> Sim Concert
               </button>
               <button id="btnSimCompression" class="pill-btn" onclick="switchFeed('sim_compression')" title="Synthetic Simulation - Bottleneck Crush">
-                Sim Crush
+                <span>⚠️</span> Sim Crush
               </button>
             </div>
           </div>
-          <div>
+          <div class="control-group">
             <div class="control-label">Vision Overlays</div>
-            <div class="btn-group">
+            <div class="btn-group" style="grid-template-columns: 1fr 1fr;">
               <button id="btnHeatmap" class="toggle-btn active" onclick="toggleOverlay('heatmap')">Heatmap</button>
               <button id="btnGridLines" class="toggle-btn active" onclick="toggleOverlay('grid')">Zone Grid</button>
             </div>
@@ -675,11 +850,11 @@
 
         <div class="hud-bar">
           <div class="hud-left">
-            <span>SOURCE: <b id="sourceIndicator" style="color: var(--safe);">Drone Alpha (Safe)</b></span>
-            <span>•</span>
-            <span>PIPELINE: <b id="modelIndicator" style="color: #94a3b8;">Farneback Flow + High-Frequency Density</b></span>
+            <span>FEED: <b id="sourceIndicator" style="color: var(--safe);">Drone Alpha (Safe)</b></span>
+            <span style="opacity: 0.5;">•</span>
+            <span>MODEL: <b id="modelIndicator" style="color: #94a3b8;">CSRNet + Farneback</b></span>
           </div>
-          <div id="fpsCounter">FPS: --</div>
+          <div id="fpsCounter" style="font-weight: 700; color: var(--accent);">FPS: --</div>
         </div>
 
         <!-- Fruin Severity Legend -->
@@ -690,15 +865,15 @@
           </div>
           <div class="legend-item" style="color: var(--warn); border-color: rgba(234,179,8,0.3);">
             <b>YELLOW (LoS C/D)</b>
-            <span>Dense / Active Flow</span>
+            <span>Dense Active Flow</span>
           </div>
           <div class="legend-item" style="color: var(--orange); border-color: rgba(249,115,22,0.4);">
             <b>ORANGE (LoS E)</b>
-            <span>Precursor Compression</span>
+            <span>Precursor Surge</span>
           </div>
           <div class="legend-item" style="color: var(--danger); border-color: rgba(239,68,68,0.5);">
             <b>RED (LoS F)</b>
-            <span>Critical Crush Hazard</span>
+            <span>Crush Hazard</span>
           </div>
         </div>
       </section>
@@ -720,8 +895,8 @@
           <!-- Anticipatory Countdown Box -->
           <div id="forecastBox" class="forecast-box">
             <div class="forecast-header">
-              <span style="font-size: 10px; color: var(--text-muted); text-transform: uppercase;">⏱ Anticipatory Trajectory</span>
-              <span id="trendDirectionTag" style="font-size: 10px; color: var(--accent);">LINEAR TREND</span>
+              <span style="font-size: 9.5px; color: var(--text-muted); text-transform: uppercase;">⏱ Anticipatory Trajectory</span>
+              <span id="trendDirectionTag" style="font-size: 9.5px; color: var(--accent); font-weight: 700;">LINEAR TREND</span>
             </div>
             <div id="forecastSummaryText" class="forecast-text">All 48 spatial zones stable at normal flow rate</div>
             <div class="forecast-sub">Calculated via in-memory rolling time-series regression (dD/dt)</div>
@@ -759,25 +934,45 @@
           </div>
         </div>
 
-        <!-- Interactive Zone Inspector (Hover Grid) -->
+        <!-- Interactive Zone Inspector (Hover / Touch Grid) -->
         <div class="card">
           <div class="card-title">
             <span>🎯 Spatial Zone Inspector</span>
-            <span style="font-size: 10px; color: var(--accent); text-transform: none;">Hover Over Grid</span>
+            <span style="font-size: 9.5px; color: var(--accent); text-transform: none;">Hover / Tap Grid</span>
           </div>
           <div class="inspector-hint">
             <span>💡</span>
-            <span>Hover your cursor across the video canvas to inspect any 1 of 48 zones.</span>
+            <span>Hover cursor or drag your finger across the video to inspect any zone.</span>
           </div>
-          <div class="inspector-box" id="inspectorBox">
-            <div class="inspector-item"><span>Selected Zone:</span><b id="inspZone" style="color: #fff;">zone_2_3 (Center)</b></div>
-            <div class="inspector-item"><span>Density:</span><span id="inspDensity">--</span></div>
-            <div class="inspector-item"><span>Flow Velocity:</span><span id="inspVelocity">--</span></div>
-            <div class="inspector-item"><span>Micro-Motion Var:</span><span id="inspVariance">--</span></div>
-            <div class="inspector-item"><span>Directional Coherence:</span><span id="inspCoherence">--</span></div>
-            <div class="inspector-item"><span>Forecast Countdown:</span><b id="inspForecast" style="color: var(--accent);">--</b></div>
-            <div class="inspector-item"><span>Rate of Change (dD/dt):</span><span id="inspRate">--</span></div>
-            <div class="inspector-item"><span>Fruin Severity:</span><b id="inspLevel" style="color: var(--safe);">--</b></div>
+          <div class="inspector-grid-compact" id="inspectorBox">
+            <div class="inspector-tile">
+              <span class="inspector-tile-label">Zone Coordinate</span>
+              <span class="inspector-tile-val" id="inspZone" style="color: var(--accent);">zone_2_3 (Center)</span>
+            </div>
+            <div class="inspector-tile">
+              <span class="inspector-tile-label">Fruin Severity</span>
+              <span class="inspector-tile-val" id="inspLevel" style="color: var(--safe);">GREEN</span>
+            </div>
+            <div class="inspector-tile">
+              <span class="inspector-tile-label">Local Density</span>
+              <span class="inspector-tile-val" id="inspDensity">--</span>
+            </div>
+            <div class="inspector-tile">
+              <span class="inspector-tile-label">Flow Velocity</span>
+              <span class="inspector-tile-val" id="inspVelocity">--</span>
+            </div>
+            <div class="inspector-tile">
+              <span class="inspector-tile-label">Micro-Motion Var</span>
+              <span class="inspector-tile-val" id="inspVariance">--</span>
+            </div>
+            <div class="inspector-tile">
+              <span class="inspector-tile-label">Rate of Change</span>
+              <span class="inspector-tile-val" id="inspRate">--</span>
+            </div>
+            <div class="inspector-tile" style="grid-column: span 2;">
+              <span class="inspector-tile-label">Forecast Countdown</span>
+              <span class="inspector-tile-val" id="inspForecast" style="color: var(--accent);">Stable Flow</span>
+            </div>
           </div>
         </div>
 
@@ -785,10 +980,10 @@
         <div class="card">
           <div class="card-title">
             <span>⚡ DynamoDB & SNS Audit Feed</span>
-            <span style="font-size: 10px; font-weight: normal; color: var(--accent);">Auto-Sync</span>
+            <span style="font-size: 9.5px; font-weight: normal; color: var(--accent);">Auto-Sync</span>
           </div>
           <div class="alert-feed" id="alertFeed">
-            <div style="font-size: 11px; color: var(--text-muted); text-align: center; padding: 16px;">
+            <div style="font-size: 10.5px; color: var(--text-muted); text-align: center; padding: 14px;">
               🟢 No active alerts. Crowd dynamics normal.<br>Switch to Drone Bravo to trigger automated alerting.
             </div>
           </div>
@@ -853,7 +1048,6 @@
     const inspDensity = document.getElementById('inspDensity');
     const inspVelocity = document.getElementById('inspVelocity');
     const inspVariance = document.getElementById('inspVariance');
-    const inspCoherence = document.getElementById('inspCoherence');
     const inspLevel = document.getElementById('inspLevel');
     const alertFeed = document.getElementById('alertFeed');
 
@@ -869,8 +1063,19 @@
     const wsUrl = `${wsProto}//${window.location.host}/ws/stream`;
     let ws;
 
-    // Web Audio synthesizer for alert beep
-    const audioCtx = (window.AudioContext || window.webkitAudioContext) ? new (window.AudioContext || window.webkitAudioContext)() : null;
+    // Web Audio synthesizer for alert beep (deferred until touch/click for mobile autoplay policy)
+    let audioCtx = null;
+    function initAudio() {
+      if (!audioCtx && (window.AudioContext || window.webkitAudioContext)) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+    window.addEventListener('click', initAudio, { once: true });
+    window.addEventListener('touchstart', initAudio, { once: true });
+
     function playAlertPing(freq = 880) {
       if (!audioCtx) return;
       try {
@@ -879,12 +1084,12 @@
         const gain = audioCtx.createGain();
         osc.type = 'sine';
         osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-        gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
+        gain.gain.setValueAtTime(0.10, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.22);
         osc.connect(gain);
         gain.connect(audioCtx.destination);
         osc.start();
-        osc.stop(audioCtx.currentTime + 0.25);
+        osc.stop(audioCtx.currentTime + 0.22);
       } catch(e) {}
     }
 
@@ -990,7 +1195,7 @@
           ctx.strokeStyle = (z.row === hoveredRow && z.col === hoveredCol)
             ? 'rgba(56, 189, 248, 0.95)'
             : 'rgba(255, 255, 255, 0.12)';
-          ctx.lineWidth = (z.row === hoveredRow && z.col === hoveredCol) ? 2 : 1;
+          ctx.lineWidth = (z.row === hoveredRow && z.col === hoveredCol) ? 2.5 : 1;
           ctx.strokeRect(x, y, cellW, cellH);
         }
 
@@ -1056,7 +1261,6 @@
           inspDensity.innerText = `${Math.round(active.density * 100)}%`;
           inspVelocity.innerText = `${active.mean_velocity} px/f`;
           inspVariance.innerText = `${active.variance}`;
-          inspCoherence.innerText = `${active.coherence}`;
           inspLevel.innerText = active.level;
           inspLevel.style.color = `var(--${active.level === 'GREEN' ? 'safe' : (active.level === 'YELLOW' ? 'warn' : (active.level === 'ORANGE' ? 'orange' : 'danger'))})`;
           
@@ -1078,7 +1282,7 @@
 
     function updateAlertFeed(alerts) {
       if (!alerts || alerts.length === 0) {
-        alertFeed.innerHTML = '<div style="font-size: 11px; color: var(--text-muted); text-align: center; padding: 14px;">🟢 No active alerts. All 48 zones normal.</div>';
+        alertFeed.innerHTML = '<div style="font-size: 10.5px; color: var(--text-muted); text-align: center; padding: 14px;">🟢 No active alerts. All 48 zones normal.</div>';
         return;
       }
 
@@ -1088,7 +1292,7 @@
           <div class="alert-item ${a.risk_level}">
             <div class="alert-item-header">
               <span style="color: var(--${a.risk_level === 'RED' ? 'danger' : 'orange'});">${a.risk_level} ALERT • ${a.zone_id}</span>
-              <span style="font-size: 10px; color: var(--text-muted);">${timeStr}</span>
+              <span style="font-size: 9.5px; color: var(--text-muted);">${timeStr}</span>
             </div>
             <div class="alert-reason">${a.reason}</div>
             <div class="alert-meta">
@@ -1100,12 +1304,12 @@
       }).join('');
     }
 
-    canvas.addEventListener('mousemove', (e) => {
+    function updateZoneCoordinates(clientX, clientY) {
       const rect = canvas.getBoundingClientRect();
       const scaleX = canvas.width / rect.width;
       const scaleY = canvas.height / rect.height;
-      const mouseX = (e.clientX - rect.left) * scaleX;
-      const mouseY = (e.clientY - rect.top) * scaleY;
+      const mouseX = (clientX - rect.left) * scaleX;
+      const mouseY = (clientY - rect.top) * scaleY;
 
       const c = Math.floor(mouseX / (canvas.width / 8));
       const r = Math.floor(mouseY / (canvas.height / 6));
@@ -1113,8 +1317,29 @@
       if (r >= 0 && r < 6 && c >= 0 && c < 8) {
         hoveredRow = r;
         hoveredCol = c;
+        if (currentTelemetry) {
+          updateTelemetryUI(currentTelemetry);
+        }
       }
+    }
+
+    // Mouse events for Desktop
+    canvas.addEventListener('mousemove', (e) => {
+      updateZoneCoordinates(e.clientX, e.clientY);
     });
+
+    // Touch events for Mobile / Tablets
+    canvas.addEventListener('touchstart', (e) => {
+      if (e.touches && e.touches[0]) {
+        updateZoneCoordinates(e.touches[0].clientX, e.touches[0].clientY);
+      }
+    }, { passive: true });
+
+    canvas.addEventListener('touchmove', (e) => {
+      if (e.touches && e.touches[0]) {
+        updateZoneCoordinates(e.touches[0].clientX, e.touches[0].clientY);
+      }
+    }, { passive: true });
 
     let localStream = null;
     let cameraInterval = null;
@@ -1125,6 +1350,7 @@
     let isLiveCamera = false;
 
     async function toggleLiveCamera() {
+      initAudio();
       if (isLiveCamera) {
         stopLiveCamera();
         switchFeed('safe');
@@ -1132,7 +1358,11 @@
       }
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'environment' }
+          video: {
+            width: { ideal: 640 },
+            height: { ideal: 480 },
+            facingMode: { ideal: 'environment' } // Prefer back camera on mobile
+          }
         });
         localStream = stream;
         const videoTrack = document.createElement('video');
@@ -1167,7 +1397,7 @@
           }
         }, 125);
       } catch (err) {
-        alert('Could not access camera: ' + err.message + '\nFalling back to demo clips.');
+        alert('Could not access camera: ' + err.message + '\nEnsure you granted camera permissions.');
         stopLiveCamera();
       }
     }
@@ -1189,6 +1419,7 @@
     }
 
     function switchFeed(feed) {
+      initAudio();
       if (isLiveCamera && feed !== 'live') {
         stopLiveCamera();
       }
